@@ -1,0 +1,123 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'fpt.prm392.fe_salehunter'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "fpt.prm392.fe_salehunter"
+        minSdk 29
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    buildscript {
+        repositories {
+            mavenCentral() //for fb auth sdk
+            google() //for google auth
+        }
+    }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+//    lint {
+//        baseline = file("lint-baseline.xml")
+//    }
+}
+
+//apply plugin: 'com.android.application' //for google auth
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+
+    implementation libs.constraintlayout
+    implementation libs.legacy.support.v4
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+
+    // ViewModel:
+    implementation libs.lifecycle.viewmodel
+    // Saved state module:
+    implementation libs.lifecycle.viewmodel.savedstate
+    // LiveData:
+    implementation libs.lifecycle.livedata
+    implementation libs.lifecycle.reactivestreams
+    implementation libs.lifecycle.common.java8 // Annotation processor Java8
+//    implementation "androidx.lifecycle:lifecycle-reactivestreams:$lifecycle_version" //LiveData - RxJava Converter
+//    // Annotation processor Java8:
+//    implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
+
+    // RxJava
+    implementation libs.rxjava
+
+    //Navigation Component
+    implementation libs.navigation.fragment
+    implementation libs.androidx.navigation.ui
+
+    //Facebook SDK
+    implementation libs.facebook.android.sdk
+    implementation libs.facebook.login
+
+    //Google Auth SDK
+    implementation libs.play.services.auth
+
+    //Retrofit
+    implementation libs.retrofit
+    implementation libs.converter.gson //Json Factory Converter GSON
+    implementation libs.adapter.rxjava2 //RxJava Factory Converter
+
+    //Room
+    implementation libs.androidx.room.runtime
+    annotationProcessor libs.androidx.room.compiler
+
+    //Glide
+    implementation libs.glide
+    annotationProcessor libs.compiler
+
+    //ML Kit Barcode scanner:
+    implementation libs.barcode.scanning
+
+    //CameraX dependencies:
+    def camerax_version = "1.4.2"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    // If you want to additionally use the CameraX Lifecycle library
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    // If you want to additionally use the CameraX VideoCapture library
+    implementation "androidx.camera:camera-video:${camerax_version}"
+    // If you want to additionally use the CameraX View class
+    implementation "androidx.camera:camera-view:${camerax_version}"
+    // If you want to additionally add CameraX ML Kit Vision Integration
+    implementation "androidx.camera:camera-mlkit-vision:${camerax_version}"
+    // If you want to additionally use the CameraX Extensions library
+    implementation "androidx.camera:camera-extensions:${camerax_version}"
+
+    //Google Maps
+    implementation libs.play.services.maps
+    implementation libs.play.services.location
+
+    //Hello Charts
+    implementation libs.hellocharts.library
+
+    //ViewPager2
+    implementation libs.androidx.viewpager2
+}

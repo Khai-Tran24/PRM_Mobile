@@ -1,0 +1,61 @@
+[versions]
+adapterRxjava2 = "2.3.0"
+agp = "8.10.1"
+barcodeScanning = "17.3.0"
+constraintlayout = "2.2.1"
+facebookLogin = "latest.release"
+glide = "4.12.0"
+hellochartsLibrary = "1.5.8"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+appcompat = "1.7.1"
+legacySupportV4 = "1.0.0"
+lifecycleViewmodel = "2.6.2"
+material = "1.12.0"
+navigationFragment = "2.9.0"
+playServicesAuth = "21.3.0"
+playServicesMaps = "19.2.0"
+retrofit = "2.9.0"
+roomRuntime = "2.7.2"
+roomCompiler = "2.7.2"
+rxjava = "2.1.9"
+viewpager2 = "1.1.0"
+cameraX = "1.2.0-alpha08"
+
+[libraries]
+adapter-rxjava2 = { module = "com.squareup.retrofit2:adapter-rxjava2", version.ref = "adapterRxjava2" }
+androidx-navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "navigationFragment" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+facebook-android-sdk = { module = "com.facebook.android:facebook-android-sdk", version.ref = "facebookLogin" }
+facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebookLogin" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+hellocharts-library = { module = "com.github.lecho:hellocharts-library", version.ref = "hellochartsLibrary" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacySupportV4" }
+lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata", version.ref = "lifecycleViewmodel" }
+lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycleViewmodel" }
+lifecycle-viewmodel-savedstate = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "lifecycleViewmodel" }
+lifecycle-reactivestreams = { module = "androidx.lifecycle:lifecycle-reactivestreams", version.ref = "lifecycleViewmodel" }
+lifecycle-common-java8 = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "lifecycleViewmodel" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "navigationFragment" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesAuth" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+rxjava = { module = "io.reactivex.rxjava2:rxjava", version.ref = "rxjava" }
+
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+

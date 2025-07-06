@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="168dp"
+    android:layout_height="wrap_content"
+    android:layout_rowWeight="1"
+    android:layout_margin="5dp"
+    android:layout_weight="1"
+    android:clickable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    app:cardBackgroundColor="?attr/background"
+    app:cardCornerRadius="15dp"
+    app:cardElevation="1.5dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp">
+
+        <ImageView
+            android:id="@+id/product_card_image"
+            android:layout_width="0dp"
+            android:layout_height="140dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/zz_havit_stereo_speakers_175" />
+
+        <CheckBox
+            android:id="@+id/product_card_favourite"
+            style="0"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/add_favourite_selector"
+            android:backgroundTint="#FF6F6F"
+            android:backgroundTintMode="multiply"
+            android:button="@null"
+            android:checked="false"
+            android:foregroundGravity="center"
+            android:gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/product_card_image" />
+
+        <TextView
+            android:id="@+id/product_card_Name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            android:maxLines="2"
+            android:minLines="2"
+            android:text="pc purple led small speakers - usb cable"
+            android:textSize="17sp"
+            app:layout_constraintEnd_toEndOf="@+id/product_card_image"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/product_card_image"
+            app:layout_constraintTop_toBottomOf="@+id/product_card_brand" />
+
+        <TextView
+            android:id="@+id/product_card_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="0000LE"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/product_card_Name"
+            app:layout_constraintTop_toBottomOf="@+id/product_card_Name" />
+
+        <ImageView
+            android:id="@+id/product_card_store"
+            android:layout_width="40dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="8dp"
+            android:adjustViewBounds="true"
+            android:cropToPadding="true"
+            android:padding="2dp"
+            android:scaleType="centerInside"
+            android:tintMode="src_in"
+            app:layout_constraintBottom_toBottomOf="@+id/product_card_brand"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/product_card_brand"
+            app:srcCompat="@drawable/jumia_seeklogo_com_" />
+
+        <TextView
+            android:id="@+id/product_card_brand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:singleLine="true"
+            android:text="Brand"
+            android:textColor="?attr/colorAccent"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@+id/product_card_store"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/product_card_image" />
+
+        <ImageView
+            android:id="@+id/product_card_rate_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:adjustViewBounds="true"
+            android:cropToPadding="true"
+            android:scaleType="fitXY"
+            app:layout_constraintBottom_toBottomOf="@+id/product_card_rate"
+            app:layout_constraintStart_toStartOf="@+id/product_card_Name"
+            app:layout_constraintTop_toTopOf="@+id/product_card_rate"
+            app:srcCompat="@drawable/rate_star_highlighted" />
+
+        <TextView
+            android:id="@+id/product_card_rate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:maxLength="3"
+            android:text="4.2"
+            android:textColor="#FD892F"
+            android:textSize="16dp"
+            app:layout_constraintBottom_toBottomOf="@+id/product_card_price"
+            app:layout_constraintStart_toEndOf="@+id/product_card_rate_icon"
+            app:layout_constraintTop_toBottomOf="@+id/product_card_Name" />
+
+        <TextView
+            android:id="@+id/product_card_salePercent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorAccent"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="3dp"
+            android:text="20% SALE"
+            android:textColor="#FFFFFF"
+            app:layout_constraintBottom_toBottomOf="@+id/product_card_favourite"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
