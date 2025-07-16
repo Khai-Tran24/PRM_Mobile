@@ -17,7 +17,7 @@ public abstract class myDataBase extends RoomDatabase {
     public static myDataBase get(Context context){
         if(db==null){
             db = Room.databaseBuilder(context, myDataBase.class,"bc")
-                    .createFromAsset("bc.db")
+                    // Removed .createFromAsset("bc.db") - creates empty database instead
                     .fallbackToDestructiveMigration()
                     .allowMainThreadQueries()
                     .build();

@@ -169,12 +169,12 @@ public class DashboardFragment extends Fragment {
         vb.dashboardStoreName.setText(storeModel.getName());
 
             Glide.with(this)
-                    .load(storeModel.getLogo())
+                    .load(storeModel.getLogoUrl())
                     .placeholder(R.drawable.store_placeholder)
                     .circleCrop()
                     .into(vb.dashboardLogo);
 
-            vb.dashboardStoreCategory.setText(storeModel.getStoreCategory());
+            vb.dashboardStoreCategory.setText(storeModel.getCategory());
 
     }
 

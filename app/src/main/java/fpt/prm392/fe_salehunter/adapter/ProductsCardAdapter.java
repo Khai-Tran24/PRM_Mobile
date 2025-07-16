@@ -131,18 +131,17 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             DataViewHolder holder = (DataViewHolder)  viewHolder;
 
-            if(renderDataInLocalLanguage()) holder.name.setText(Data.get(position).getNameArabic());
-            else holder.name.setText(Data.get(position).getName());
+            holder.name.setText(Data.get(position).getName());
             holder.brand.setText(Data.get(position).getBrand());
-            holder.price.setText(Data.get(position).getPrice()+ context.getString(R.string.currency));
-            holder.rate.setText(String.valueOf(Data.get(position).getRate()));
+            holder.price.setText(Data.get(position).getCurrentPrice()+ context.getString(R.string.currency));
+            holder.rate.setText(String.valueOf(Data.get(position).getAverageRating()));
             holder.favourite.setChecked(Data.get(position).isFavorite());
             holder.sale.setText(Data.get(position).getSalePercent()+context.getString(R.string.sale_percent));
 
             if(hideFavButton) holder.favourite.setVisibility(View.GONE);
             if(Data.get(position).getSalePercent() == 0) holder.sale.setVisibility(View.GONE);
 
-            if(Data.get(position).getRate()==0){
+            if(Data.get(position).getAverageRating()==0){
                 holder.rate.setVisibility(View.INVISIBLE);
                 holder.rateIcon.setVisibility(View.INVISIBLE);
             }
@@ -150,15 +149,15 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             //Store
             //if(isDarkModeEnabled()) holder.store.setImageTintList(ColorStateList.valueOf(Color.WHITE));
 
-            if(Data.get(position).getStoreLogo()!=null)
+            if(Data.get(position).getStoreImageUrl()!=null)
             Glide.with(context)
-                    .load(Data.get(position).getStoreLogo())
+                    .load(Data.get(position).getStoreImageUrl())
                     .transition(DrawableTransitionOptions.withCrossFade(250))
                     .into(holder.store);
 
             //Image
             Glide.with(context)
-                    .load(Data.get(position).getImage())
+                    .load(Data.get(position).getMainImage())
                     .centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(250))
                     .into(holder.image);

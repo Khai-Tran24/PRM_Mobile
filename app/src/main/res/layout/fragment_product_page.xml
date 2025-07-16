@@ -147,7 +147,7 @@
                             android:cropToPadding="true"
                             android:scaleType="centerCrop"
                             app:layout_constraintBottom_toBottomOf="@+id/product_page_title"
-                            app:layout_constraintEnd_toStartOf="@+id/account_sign_title"
+                            app:layout_constraintEnd_toStartOf="@+id/product_page_title"
                             app:layout_constraintHorizontal_bias="0.0"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="@+id/product_page_brand"

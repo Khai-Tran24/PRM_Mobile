@@ -12,7 +12,7 @@
     <string name="google_map_api_key">GOOGLE_MAP_API_KEY</string>
 
     <!-- App Font-->
-    <string name="app_font"><![CDATA[@font/raleway_regular]]></string>
+    <string name="app_font">raleway_regular</string>
 
     <!-- App Currency-->
     <string name="currency">LE</string>

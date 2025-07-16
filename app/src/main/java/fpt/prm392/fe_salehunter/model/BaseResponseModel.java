@@ -15,11 +15,34 @@ public class BaseResponseModel {
     public static final int FAILED_SERVER_DOWN = 503; //Failed: Server Down / Service Not Available
     public static final int FAILED_REQUEST_FAILURE = 504; //Failed: Request Error
 
-    @SerializedName("status")
-    protected String status;
+    @SerializedName("code")
+    protected int code;
 
     @SerializedName("message")
     protected String message;
+
+    @SerializedName("isSuccess")
+    protected boolean isSuccess;
+
+    // Legacy field for backward compatibility
+    @SerializedName("status")
+    protected String status;
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public boolean isSuccess() {
+        return isSuccess;
+    }
+
+    public void setSuccess(boolean success) {
+        isSuccess = success;
+    }
 
     public String getStatus() {
         return status;

@@ -20,6 +20,7 @@ public class SharedPrefManager {
     private static final String REMEMBER_ME = "rememberMe";
     private static final String SIGNED_IN = "signedIn";
     private static final String TOKEN = "token";
+    private static final String REFRESH_TOKEN = "refreshToken";
     private static final String USER = "user";
 
     // App Settings Keys
@@ -73,6 +74,16 @@ public class SharedPrefManager {
     public void setToken(String token){
         sharedPreferences.edit()
                 .putString(TOKEN,token)
+                .apply();
+    }
+
+    public String getRefreshToken() {
+        return sharedPreferences.getString(REFRESH_TOKEN,"");
+    }
+
+    public void setRefreshToken(String refreshToken){
+        sharedPreferences.edit()
+                .putString(REFRESH_TOKEN,refreshToken)
                 .apply();
     }
 

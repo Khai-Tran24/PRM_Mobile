@@ -118,13 +118,12 @@ public class ProductsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         if(getItemViewType(position) == TYPE_DATA_VIEW_HOLDER) {
             DataViewHolder holder = (DataViewHolder)  viewHolder;
 
-            if(renderDataInLocalLanguage()) holder.name.setText(Data.get(position).getNameArabic());
-            else holder.name.setText(Data.get(position).getName());
+            holder.name.setText(Data.get(position).getName());
             holder.brand.setText(Data.get(position).getBrand());
-            holder.price.setText(Data.get(position).getPrice()+context.getString(R.string.currency));
-            holder.rate.setText(String.valueOf(Data.get(position).getRate()));
+            holder.price.setText(Data.get(position).getCurrentPrice()+context.getString(R.string.currency));
+            holder.rate.setText(String.valueOf(Data.get(position).getAverageRating()));
             holder.favourite.setChecked(Data.get(position).isFavorite());
-            holder.date.setText(dateTimeConvert(Data.get(position).getDate()));
+            holder.date.setText(dateTimeConvert(Data.get(position).getCreatedDate()));
             holder.sale.setText(Data.get(position).getSalePercent()+context.getString(R.string.sale_percent));
 
             if(hideFavButton) holder.favourite.setVisibility(View.GONE);
@@ -133,7 +132,7 @@ public class ProductsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             if(showDate) holder.date.setVisibility(View.VISIBLE);
 
-            if(Data.get(position).getRate()==0){
+            if(Data.get(position).getAverageRating()==0){
                 holder.rate.setVisibility(View.INVISIBLE);
                 holder.rateIcon.setVisibility(View.INVISIBLE);
             }
@@ -144,14 +143,14 @@ public class ProductsListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             if(Data.get(position).getStoreName()==null) holder.store.setVisibility(View.GONE);
             else {
                 Glide.with(context)
-                        .load(Data.get(position).getStoreLogo())
+                        .load(Data.get(position).getStoreImageUrl())
                         .transition(DrawableTransitionOptions.withCrossFade(250))
                         .into(holder.store);
             }
 
             //Image
             Glide.with(context)
-                    .load(Data.get(position).getImage())
+                    .load(Data.get(position).getMainImage())
                     .centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(250))
                     .into(holder.image);

@@ -613,11 +613,11 @@ public class CreateProductFragment extends Fragment {
 
     void renderProductData(){
         vb.createProductName.getEditText().setText(productData.getName());
-        vb.createProductNameArabic.getEditText().setText(productData.getNameArabic());
-        vb.createProductPrice.getEditText().setText(productData.getOriginalPrice()+"");
+        vb.createProductNameArabic.getEditText().setText(productData.getName());
+        vb.createProductPrice.getEditText().setText(productData.getCurrentPrice()+"");
         vb.createProductSaleSlider.setProgress(productData.getSalePercent());
         vb.createProductDescription.getEditText().setText(productData.getDescription());
-        vb.createProductNameArabic.getEditText().setText(productData.getDescriptionArabic());
+        vb.createProductNameArabic.getEditText().setText(productData.getDescription());
 
         vb.createProductPhaseLayout.setVisibility(View.GONE);
 

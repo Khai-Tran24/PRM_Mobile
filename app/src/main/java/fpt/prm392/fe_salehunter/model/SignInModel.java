@@ -25,4 +25,8 @@ public class SignInModel {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public fpt.prm392.fe_salehunter.model.auth.LoginRequestModel toLoginRequestModel() {
+        return new fpt.prm392.fe_salehunter.model.auth.LoginRequestModel(this.email, this.password);
+    }
 }

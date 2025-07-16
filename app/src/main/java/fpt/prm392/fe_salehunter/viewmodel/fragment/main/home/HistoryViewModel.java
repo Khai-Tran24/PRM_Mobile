@@ -25,11 +25,15 @@ public class HistoryViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<ProductsResponseModel>> getViewedProducts(){
-        products = repository.getProductsViewsHistory(token);
+        if (products == null) {
+            products = repository.getProductsViewsHistory(token);
+        }
         return products;
     }
 
     public void removeObserverOfProducts(LifecycleOwner lifecycleOwner){
-        products.removeObservers(lifecycleOwner);
+        if (products != null) {
+            products.removeObservers(lifecycleOwner);
+        }
     }
 }

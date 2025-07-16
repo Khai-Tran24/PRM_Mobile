@@ -47,69 +47,60 @@ public class SearchResultsViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<ProductsResponseModel>> loadResults(){
-        initialLoadedProducts = repository.searchProducts(token,
-                language,
-                userLocation.latitude,
-                userLocation.longitude,
+        // Updated to use new simplified API structure
+        initialLoadedProducts = repository.searchProducts(
+                token,
                 keyword,
-                "all",
-                sortAndFilterModel.getSortBy(),
-                sortAndFilterModel.getMinPrice(),
-                sortAndFilterModel.getMaxPrice(),
+                null, // storeId - null for all stores
                 sortAndFilterModel.getCategory(),
-                sortAndFilterModel.getBrand(),
-                0,
-                productsCountPerPage);
-
+                (double) sortAndFilterModel.getMinPrice(),
+                (double) sortAndFilterModel.getMaxPrice()
+        );
         return initialLoadedProducts;
     }
 
     public void removeObserverInitialLoadedProducts(LifecycleOwner lifecycleOwner){
-        initialLoadedProducts.removeObservers(lifecycleOwner);
+        if (initialLoadedProducts != null) {
+            initialLoadedProducts.removeObservers(lifecycleOwner);
+        }
     }
 
     public LiveData<Response<ProductsResponseModel>> loadMoreOnlineResults(){
-        onlinePaginatedProducts = repository.searchProducts(token,
-                language,
-                userLocation.latitude,
-                userLocation.longitude,
+        // Updated to use new simplified API structure (treating as same as loadResults for now)
+        onlinePaginatedProducts = repository.searchProducts(
+                token,
                 keyword,
-                "online",
-                sortAndFilterModel.getSortBy(),
-                sortAndFilterModel.getMinPrice(),
-                sortAndFilterModel.getMaxPrice(),
+                null, // storeId - null for all stores
                 sortAndFilterModel.getCategory(),
-                sortAndFilterModel.getBrand(),
-                cursorLastOnlineItem,
-                productsCountPerPage);
-
+                (double) sortAndFilterModel.getMinPrice(),
+                (double) sortAndFilterModel.getMaxPrice()
+        );
         return onlinePaginatedProducts;
     }
 
     public void removeObserverOnlineLoadedProducts(LifecycleOwner lifecycleOwner){
-        onlinePaginatedProducts.removeObservers(lifecycleOwner);
+        if (onlinePaginatedProducts != null) {
+            onlinePaginatedProducts.removeObservers(lifecycleOwner);
+        }
     }
 
     public LiveData<Response<ProductsResponseModel>> loadMoreLocalResults(){
-        localPaginatedProducts = repository.searchProducts(token,
-                language,
-                userLocation.latitude,
-                userLocation.longitude,
+        // Updated to use new simplified API structure (treating as same as loadResults for now)
+        localPaginatedProducts = repository.searchProducts(
+                token,
                 keyword,
-                "offline",
-                sortAndFilterModel.getSortBy(),
-                sortAndFilterModel.getMinPrice(),
-                sortAndFilterModel.getMaxPrice(),
+                null, // storeId - null for all stores
                 sortAndFilterModel.getCategory(),
-                sortAndFilterModel.getBrand(),
-                cursorLastLocalItem,
-                productsCountPerPage);
-
+                (double) sortAndFilterModel.getMinPrice(),
+                (double) sortAndFilterModel.getMaxPrice()
+        );
         return localPaginatedProducts;
     }
 
     public void removeObserverLocalLoadedProducts(LifecycleOwner lifecycleOwner){
-        localPaginatedProducts.removeObservers(lifecycleOwner);
+        if (localPaginatedProducts != null) {
+            localPaginatedProducts.removeObservers(lifecycleOwner);
+        }
     }
 
     public LiveData<Response<BaseResponseModel>> addFavourite(long productId){

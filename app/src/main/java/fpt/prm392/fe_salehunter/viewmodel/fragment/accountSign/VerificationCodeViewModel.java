@@ -24,8 +24,6 @@ public class VerificationCodeViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<BaseResponseModel>> resendEmailVerification(String email){
-        EmailVerificationModel emailVerificationModel = new EmailVerificationModel();
-        emailVerificationModel.setEmail(email);
-        return repository.sendEmailVerification(emailVerificationModel);
+        return repository.sendEmailVerification(email);
     }
 }

@@ -42,7 +42,7 @@ public class CreateProductViewModel extends AndroidViewModel {
         createProductRequestModel.setDescriptionArabic(descriptionArabic);
         createProductRequestModel.setImages(images);
 
-        createProductObserver = repository.createProduct(token,storeId,createProductRequestModel);
+        createProductObserver = repository.createProduct(token,createProductRequestModel);
         return createProductObserver;
     }
 
@@ -59,7 +59,7 @@ public class CreateProductViewModel extends AndroidViewModel {
         createProductRequestModel.setDescription(description);
         createProductRequestModel.setDescriptionArabic(descriptionArabic);
 
-        updateProductObserver = repository.updateProduct(token, storeId, productId, createProductRequestModel);
+        updateProductObserver = repository.updateProduct(token, productId, createProductRequestModel);
         return updateProductObserver;
     }
 
@@ -68,7 +68,7 @@ public class CreateProductViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<BaseResponseModel>> deleteProduct(long storeId, long productId){
-        deleteProductObserver = repository.deleteProduct(token, storeId, productId);
+        deleteProductObserver = repository.deleteProduct(token, productId);
         return deleteProductObserver;
     }
 

@@ -173,18 +173,19 @@ public class ProductsSearchResultsAdapter extends RecyclerView.Adapter<RecyclerV
         if(getItemViewType(position) == TYPE_PRODUCT_VIEW_HOLDER) {
 
             ProductViewHolder holder = (ProductViewHolder)  viewHolder;
+            // Get the data item once to avoid lint warning about position usage
+            ProductModel dataItem = Data.get(position);
 
-            if(renderDataInLocalLanguage()) holder.name.setText(Data.get(position).getNameArabic());
-            else holder.name.setText(Data.get(position).getName());
-            holder.brand.setText(Data.get(position).getBrand());
-            holder.price.setText(Data.get(position).getPrice()+context.getString(R.string.currency));
-            holder.rate.setText(String.valueOf(Data.get(position).getRate()));
-            holder.favourite.setChecked(Data.get(position).isFavorite());
-            holder.sale.setText(Data.get(position).getSalePercent()+context.getString(R.string.sale_percent));
+            holder.name.setText(dataItem.getName());
+            holder.brand.setText(dataItem.getBrand());
+            holder.price.setText(dataItem.getCurrentPrice()+context.getString(R.string.currency));
+            holder.rate.setText(String.valueOf(dataItem.getAverageRating()));
+            holder.favourite.setChecked(dataItem.isFavorite());
+            holder.sale.setText(dataItem.getSalePercent()+context.getString(R.string.sale_percent));
 
-            if(Data.get(position).getSalePercent() == 0) holder.sale.setVisibility(View.GONE);
+            if(dataItem.getSalePercent() == 0) holder.sale.setVisibility(View.GONE);
 
-            if(Data.get(position).getRate()==0){
+            if(dataItem.getAverageRating()==0){
                 holder.rate.setVisibility(View.INVISIBLE);
                 holder.rateIcon.setVisibility(View.INVISIBLE);
             }
@@ -193,13 +194,13 @@ public class ProductsSearchResultsAdapter extends RecyclerView.Adapter<RecyclerV
             //if(isDarkModeEnabled()) holder.store.setImageTintList(ColorStateList.valueOf(Color.WHITE));
 
             Glide.with(context)
-                    .load(Data.get(position).getStoreLogo())
+                    .load(dataItem.getStoreImageUrl())
                     .transition(DrawableTransitionOptions.withCrossFade(250))
                     .into(holder.store);
 
             //Image
             Glide.with(context)
-                    .load(Data.get(position).getImage())
+                    .load(dataItem.getMainImage())
                     .centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(250))
                     .into(holder.image);
@@ -251,8 +252,9 @@ public class ProductsSearchResultsAdapter extends RecyclerView.Adapter<RecyclerV
         else if(getItemViewType(position) == TYPE_LABEL_VIEW_HOLDER){
 
             LabelViewHolder holder = (LabelViewHolder)  viewHolder;
+            ProductModel dataItem = Data.get(position);
 
-            if(Data.get(position) == onlineLabelLayoutObject) holder.label.setText(R.string.Online_Stores);
+            if(dataItem == onlineLabelLayoutObject) holder.label.setText(R.string.Online_Stores);
             else holder.label.setText(R.string.Local_Stores);
         }
 

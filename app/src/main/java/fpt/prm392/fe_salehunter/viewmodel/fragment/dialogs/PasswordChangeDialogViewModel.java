@@ -26,6 +26,6 @@ public class PasswordChangeDialogViewModel extends AndroidViewModel {
         changePasswordModel.setNewPassword(newPassword);
         changePasswordModel.setNewPasswordConfirm(newPasswordConfirm);
 
-        return repository.changePassword(token, changePasswordModel);
+        return repository.changePassword(token, changePasswordModel.toChangePasswordRequestModel());
     }
 }

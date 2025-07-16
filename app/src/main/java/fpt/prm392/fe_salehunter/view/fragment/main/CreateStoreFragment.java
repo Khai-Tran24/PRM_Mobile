@@ -174,7 +174,10 @@ public class CreateStoreFragment extends Fragment {
 
         vb.createStoreHasWhatsapp.setEnabled(false);
 
-        locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        // Add null safety check for getActivity()
+        if (getActivity() != null) {
+            locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        }
         locationProvider = LocationManager.GPS_PROVIDER;
 
         vb.createStoreEditPic.setOnClickListener(button -> {
@@ -480,10 +483,11 @@ public class CreateStoreFragment extends Fragment {
                 case BaseResponseModel.SUCCESSFUL_CREATION:
                     StoreModel store = response.body().getStore();
                     UserModel user = UserAccountManager.getUser(getContext());
-                    user.setStoreId(store.getId());
-
-                    UserAccountManager.updateUser(getContext(),user);
-                    ((MainActivity)getActivity()).loadUserData(user);
+                    if (user != null) {
+                        user.setStoreId(store.getId());
+                        UserAccountManager.updateUser(getContext(),user);
+                        ((MainActivity)getActivity()).loadUserData(user);
+                    }
 
                     Bundle bundle = new Bundle();
                     bundle.putLong("storeId",store.getId());
@@ -547,21 +551,21 @@ public class CreateStoreFragment extends Fragment {
 
     void renderStoreData(){
         Glide.with(this)
-                .load(storeData.getLogo())
+                .load(storeData.getLogoUrl())
                 .placeholder(R.drawable.store_placeholder)
                 .circleCrop()
                 .into(vb.createStorePic);
 
         vb.createStoreName.getEditText().setText(storeData.getName());
-        vb.createStoreCategory.getEditText().setText(storeData.getStoreCategory());
+        vb.createStoreCategory.getEditText().setText(storeData.getCategory());
         vb.createStoreAddress.getEditText().setText(storeData.getAddress());
         vb.createStoreDescription.getEditText().setText(storeData.getDescription());
         vb.createStorePhone.getEditText().setText(storeData.getPhone());
-        vb.createStoreHasWhatsapp.setChecked(storeData.getWhatsapp()!=null);
-        vb.createStoreWebsite.getEditText().setText(storeData.getWebsite());
+        vb.createStoreHasWhatsapp.setChecked(storeData.getWhatsappPhone()!=null);
+        vb.createStoreWebsite.getEditText().setText(storeData.getWebsiteUrl());
 
         try {
-            String facebookLink = storeData.getFacebook();
+            String facebookLink = storeData.getFacebookUrl();
             String facebookUsername = new URL(facebookLink).getPath().replace("/","");
             vb.createStoreFacebook.getEditText().setText(facebookUsername);
         }
@@ -570,7 +574,7 @@ public class CreateStoreFragment extends Fragment {
         }
 
         try {
-        String instagramLink = storeData.getInstagram();
+        String instagramLink = storeData.getInstagramUrl();
         String instagramUsername = new URL(instagramLink).getPath().replace("/","");
         vb.createStoreInstagram.getEditText().setText(instagramUsername);
         }

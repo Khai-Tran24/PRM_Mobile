@@ -103,6 +103,15 @@ public class ProfileFragment extends Fragment {
         user = UserAccountManager.getUser(getContext());
         token = UserAccountManager.getToken(getContext(),UserAccountManager.TOKEN_TYPE_BEARER);
 
+        // Add null safety check for user
+        if (user == null) {
+            Toast.makeText(getContext(), "User data not available", Toast.LENGTH_SHORT).show();
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
+            }
+            return;
+        }
+
         switch (user.getSignedInWith()){
             case UserModel.SIGNED_IN_WITH_EMAIL:
                 vb.profileSocialLogo.setVisibility(View.GONE);
@@ -171,9 +180,11 @@ public class ProfileFragment extends Fragment {
                 }
                 else vb.profileUsernameField.setError(null);
 
-                usernameChanged = !user.getFullName().equals(vb.profileUsernameField.getEditText().getText().toString());
-
-                showSaveButton(usernameChanged || emailChanged || picChanged);
+                // Add null safety check for user
+                if (user != null) {
+                    usernameChanged = !user.getFullName().equals(vb.profileUsernameField.getEditText().getText().toString());
+                    showSaveButton(usernameChanged || emailChanged || picChanged);
+                }
             }
         });
 
@@ -199,9 +210,11 @@ public class ProfileFragment extends Fragment {
                 }
                 else vb.profileEmailField.setError(null);
 
-                emailChanged = !user.getEmail().equals(vb.profileEmailField.getEditText().getText().toString());
-
-                showSaveButton(usernameChanged || emailChanged || picChanged);
+                // Add null safety check for user
+                if (user != null) {
+                    emailChanged = !user.getEmail().equals(vb.profileEmailField.getEditText().getText().toString());
+                    showSaveButton(usernameChanged || emailChanged || picChanged);
+                }
             }
         });
 
@@ -228,6 +241,8 @@ public class ProfileFragment extends Fragment {
     }
 
     void renderProfileData(){
+        if (user == null) return;
+        
         picChanged = usernameChanged = emailChanged = false;
         vb.profileUsername.setText(user.getFullName());
         vb.profileUsernameField.getEditText().setText(user.getFullName());
@@ -256,6 +271,7 @@ public class ProfileFragment extends Fragment {
     }
 
     void saveProfile(){
+        if (user == null) return;
 
         if(picChanged) user.setEncodedImage(ImageEncoder.get().encode(getContext(),image));
 

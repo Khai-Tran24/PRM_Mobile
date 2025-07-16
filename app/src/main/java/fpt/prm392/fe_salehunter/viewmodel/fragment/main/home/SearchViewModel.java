@@ -26,12 +26,16 @@ public class SearchViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<ProductsResponseModel>> getRecommendedProducts(){
-        recommendedProducts = repository.getRecommendedProducts(token);
+        if (recommendedProducts == null) {
+            recommendedProducts = repository.getRecommendedProducts(token);
+        }
         return recommendedProducts;
     }
 
     public void removeObserverRecommendedProducts(LifecycleOwner lifecycleOwner){
-        recommendedProducts.removeObservers(lifecycleOwner);
+        if (recommendedProducts != null) {
+            recommendedProducts.removeObservers(lifecycleOwner);
+        }
     }
 
     public LiveData<Response<BaseResponseModel>> addFavourite(long productId){

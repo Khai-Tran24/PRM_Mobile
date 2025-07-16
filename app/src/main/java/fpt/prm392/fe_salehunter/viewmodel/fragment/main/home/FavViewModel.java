@@ -31,7 +31,9 @@ public class FavViewModel extends AndroidViewModel {
     }
 
     public void removeObserverOfProducts(LifecycleOwner lifecycleOwner){
-        products.removeObservers(lifecycleOwner);
+        if (products != null) {
+            products.removeObservers(lifecycleOwner);
+        }
     }
 
     public LiveData<Response<BaseResponseModel>> removeFavourite(long productId){

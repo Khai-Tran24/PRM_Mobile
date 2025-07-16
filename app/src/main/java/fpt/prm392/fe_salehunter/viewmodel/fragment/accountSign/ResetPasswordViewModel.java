@@ -19,11 +19,11 @@ public class ResetPasswordViewModel extends AndroidViewModel {
         repository = new Repository();
     }
 
-    public LiveData<Response<BaseResponseModel>> resetPassword(String pin,String newPassword, String newPasswordConfirm){
+    public LiveData<Response<BaseResponseModel>> resetPassword(String token, String email, String newPassword, String newPasswordConfirm){
         ResetPasswordModel resetPasswordModel = new ResetPasswordModel();
         resetPasswordModel.setPassword(newPassword);
         resetPasswordModel.setPasswordConfirm(newPasswordConfirm);
 
-        return repository.resetPassword(pin,resetPasswordModel);
+        return repository.resetPassword(resetPasswordModel.toResetPasswordRequestModel(token, email));
     }
 }

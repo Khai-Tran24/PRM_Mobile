@@ -22,11 +22,18 @@ public final class UserAccountManager {
     public static final String FORCED_SIGN_OUT = "forcedSignOut";
 
     public static void signIn(Activity activity, Intent intent, String token, UserModel userModel){
+        signInWithTokens(activity, intent, token, null, userModel);
+    }
+
+    public static void signInWithTokens(Activity activity, Intent intent, String accessToken, String refreshToken, UserModel userModel){
         user = userModel;
         Context context = activity.getApplicationContext();
         //Save User Data
         SharedPrefManager.get(context).setSignedIn(true);
-        SharedPrefManager.get(context).setToken(token);
+        SharedPrefManager.get(context).setToken(accessToken);
+        if (refreshToken != null) {
+            SharedPrefManager.get(context).setRefreshToken(refreshToken);
+        }
         SharedPrefManager.get(context).setUser(userModel);
 
         //Launch Main Activity
@@ -59,6 +66,10 @@ public final class UserAccountManager {
         return output;
     }
 
+    public static String getRefreshToken(Context context){
+        return SharedPrefManager.get(context).getRefreshToken();
+    }
+
     public static void signOut(Activity activity, boolean forced){
         DialogsProvider.get(activity).setLoading(true);
 
@@ -67,6 +78,7 @@ public final class UserAccountManager {
         //clear user account data
         SharedPrefManager.get(context).setSignedIn(false);
         SharedPrefManager.get(context).setToken("");
+        SharedPrefManager.get(context).setRefreshToken("");
         SharedPrefManager.get(context).setUser(null);
 
         //signout from facebook

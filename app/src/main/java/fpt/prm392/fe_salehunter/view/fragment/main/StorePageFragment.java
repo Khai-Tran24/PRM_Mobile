@@ -29,6 +29,7 @@ import fpt.prm392.fe_salehunter.databinding.FragmentStorePageBinding;
 import fpt.prm392.fe_salehunter.model.BaseResponseModel;
 import fpt.prm392.fe_salehunter.model.ProductModel;
 import fpt.prm392.fe_salehunter.model.StoreModel;
+import fpt.prm392.fe_salehunter.model.UserModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
@@ -173,13 +174,13 @@ public class StorePageFragment extends Fragment {
         if(storeModel.getType().equals("online")){
 
             Glide.with(this)
-                    .load(storeModel.getLogo())
+                    .load(storeModel.getLogoUrl())
                     .fitCenter()
                     .placeholder(R.drawable.store_placeholder)
                     .into(vb.storePageLogo);
 
             Glide.with(this)
-                    .load(storeModel.getLogo())
+                    .load(storeModel.getLogoUrl())
                     .fitCenter()
                     .placeholder(R.drawable.store_placeholder)
                     .into(vb.storePageLogoToolbar);
@@ -195,19 +196,19 @@ public class StorePageFragment extends Fragment {
         else{
 
             Glide.with(this)
-                    .load(storeModel.getLogo())
+                    .load(storeModel.getLogoUrl())
                     .placeholder(R.drawable.store_placeholder)
                     .circleCrop()
                     .into(vb.storePageLogo);
 
             Glide.with(this)
-                    .load(storeModel.getLogo())
+                    .load(storeModel.getLogoUrl())
                     .placeholder(R.drawable.store_placeholder)
                     .circleCrop()
                     .into(vb.storePageLogoToolbar);
 
-            vb.storePageStoreCategory.setText(storeModel.getStoreCategory());
-            vb.storePageStoreCategoryToolbar.setText(storeModel.getStoreCategory());
+            vb.storePageStoreCategory.setText(storeModel.getCategory());
+            vb.storePageStoreCategoryToolbar.setText(storeModel.getCategory());
 
             if(storeModel.getAddress() == null) vb.storePageStoreWebsite.setVisibility(View.GONE);
             else{
@@ -230,34 +231,34 @@ public class StorePageFragment extends Fragment {
 
         vb.storePageStoreDescription.setText(storeModel.getDescription());
 
-        if(storeModel.getWebsite() == null) vb.storePageStoreWebsite.setVisibility(View.GONE);
+        if(storeModel.getWebsiteUrl() == null) vb.storePageStoreWebsite.setVisibility(View.GONE);
         else{
             vb.storePageStoreWebsite.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getWebsite()));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getWebsiteUrl()));
                 startActivity(intent);
             });
         }
 
-        if(storeModel.getWhatsapp() == null) vb.storePageStoreWhatsapp.setVisibility(View.GONE);
+        if(storeModel.getWhatsappPhone() == null) vb.storePageStoreWhatsapp.setVisibility(View.GONE);
         else{
             vb.storePageStoreWhatsapp.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=+20"+storeModel.getWhatsapp()));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=+20"+storeModel.getWhatsappPhone()));
                 startActivity(intent);
             });
         }
 
-        if(storeModel.getFacebook() == null) vb.storePageStoreFacebook.setVisibility(View.GONE);
+        if(storeModel.getFacebookUrl() == null) vb.storePageStoreFacebook.setVisibility(View.GONE);
         else{
             vb.storePageStoreFacebook.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getFacebook().replace(".com/",".com/n/?")));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getFacebookUrl().replace(".com/",".com/n/?")));
                 startActivity(intent);
             });
         }
 
-        if(storeModel.getInstagram() == null) vb.storePageStoreInstagram.setVisibility(View.GONE);
+        if(storeModel.getInstagramUrl() == null) vb.storePageStoreInstagram.setVisibility(View.GONE);
         else{
             vb.storePageStoreInstagram.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getInstagram()));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getInstagramUrl()));
                 startActivity(intent);
             });
         }
@@ -270,7 +271,9 @@ public class StorePageFragment extends Fragment {
             endOfProducts = true;
             vb.storePageNoProducts.setVisibility(View.VISIBLE);
 
-            if(viewModel.getStoreId() == UserAccountManager.getUser(getContext()).getStoreId()){
+            // Add null safety check for user
+            UserModel currentUser = UserAccountManager.getUser(getContext());
+            if(currentUser != null && viewModel.getStoreId() == currentUser.getStoreId()){
                 vb.storePageNoProductsTitle.setText(R.string.You_dont_have_products);
             }
         }

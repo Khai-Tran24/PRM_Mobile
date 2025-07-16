@@ -26,12 +26,16 @@ public class OnSaleViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<ProductsResponseModel>> getOnSaleProducts(){
-        products = repository.getOnSaleProducts(token);
+        if (products == null) {
+            products = repository.getOnSaleProducts(token);
+        }
         return products;
     }
 
     public void removeObserverOfProducts(LifecycleOwner lifecycleOwner){
-        products.removeObservers(lifecycleOwner);
+        if (products != null) {
+            products.removeObservers(lifecycleOwner);
+        }
     }
 
     public LiveData<Response<BaseResponseModel>> addFavourite(long productId){

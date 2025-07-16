@@ -1,6 +1,6 @@
 [versions]
 adapterRxjava2 = "2.3.0"
-agp = "8.10.1"
+agp = "8.11.1"
 barcodeScanning = "17.3.0"
 constraintlayout = "2.2.1"
 facebookLogin = "latest.release"

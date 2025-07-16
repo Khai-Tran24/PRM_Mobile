@@ -186,7 +186,15 @@ public class SignInFragment extends Fragment {
                             intent.putExtra(MainActivity.JUST_SIGNED_IN,true);
 
                             SharedPrefManager.get(getContext()).setRememberMe(vb.signInRememberMe.isChecked());
-                            UserAccountManager.signIn(getActivity(), intent, response.headers().get(Repository.AUTH_TOKEN_HEADER), response.body().getUser());
+                            // Add null safety check for response body and extract accessToken correctly
+                            if (response.body() != null && response.body().getData() != null && 
+                                response.body().getData().getUser() != null && 
+                                response.body().getData().getAccessToken() != null) {
+                                UserAccountManager.signInWithTokens(getActivity(), intent, 
+                                        response.body().getData().getAccessToken(), 
+                                        response.body().getData().getRefreshToken(), 
+                                        response.body().getData().getUser());
+                            }
                             break;
 
                         case BaseResponseModel.FAILED_NOT_FOUND:
@@ -222,7 +230,7 @@ public class SignInFragment extends Fragment {
                     intent.putExtra(MainActivity.JUST_SIGNED_IN,true);
 
                     UserModel userModel = new UserModel();
-                    userModel.setId(viewModel.getFacebookSocialAuthModel().getClientId());
+                    userModel.setId(Long.parseLong(viewModel.getFacebookSocialAuthModel().getClientId()));
                     userModel.setEmail(viewModel.getFacebookSocialAuthModel().getEmail());
                     userModel.setFullName(viewModel.getFacebookSocialAuthModel().getFullName());
                     userModel.setImageUrl(viewModel.getFacebookSocialAuthModel().getImage());
@@ -262,7 +270,7 @@ public class SignInFragment extends Fragment {
                     intent.putExtra(MainActivity.JUST_SIGNED_IN,true);
 
                     UserModel userModel = new UserModel();
-                    userModel.setId(viewModel.getGoogleSocialAuthModel().getClientId());
+                    userModel.setId(Long.parseLong(viewModel.getGoogleSocialAuthModel().getClientId()));
                     userModel.setEmail(viewModel.getGoogleSocialAuthModel().getEmail());
                     userModel.setFullName(viewModel.getGoogleSocialAuthModel().getFullName());
                     userModel.setImageUrl(viewModel.getGoogleSocialAuthModel().getImage());

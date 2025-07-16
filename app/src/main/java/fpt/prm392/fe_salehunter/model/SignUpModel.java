@@ -58,4 +58,14 @@ public class SignUpModel {
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
+
+    public fpt.prm392.fe_salehunter.model.auth.RegisterRequestModel toRegisterRequestModel() {
+        return new fpt.prm392.fe_salehunter.model.auth.RegisterRequestModel(
+            this.fullName, 
+            this.email,
+            "", // phoneNumber - not available in SignUpModel, use empty string
+            this.password, 
+            this.passwordConfirm
+        );
+    }
 }

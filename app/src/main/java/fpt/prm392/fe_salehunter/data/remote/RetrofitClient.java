@@ -9,7 +9,7 @@ public class RetrofitClient {
     private static Retrofit upcItemDbClient;
     private static Retrofit barcodeMonsterClient;
 
-    private static String mainClientUrl="https://sale-hunter.herokuapp.com/api/v1/";
+    private static String mainClientUrl="https://prm392.onrender.com/";
     private static String upcItemDbClientUrl="https://api.upcitemdb.com/";
     private static String barcodeMonsterClientUrl="https://barcode.monster/";
 

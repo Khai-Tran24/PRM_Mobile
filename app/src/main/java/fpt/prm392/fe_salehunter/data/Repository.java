@@ -18,6 +18,14 @@ import fpt.prm392.fe_salehunter.model.ProductRateModel;
 import fpt.prm392.fe_salehunter.model.ProductsResponseModel;
 import fpt.prm392.fe_salehunter.model.ResetPasswordModel;
 import fpt.prm392.fe_salehunter.model.SignInModel;
+import fpt.prm392.fe_salehunter.model.auth.LoginRequestModel;
+import fpt.prm392.fe_salehunter.model.auth.LoginResponseModel;
+import fpt.prm392.fe_salehunter.model.auth.RegisterRequestModel;
+import fpt.prm392.fe_salehunter.model.auth.RegisterResponseModel;
+import fpt.prm392.fe_salehunter.model.auth.ResetPasswordRequestModel;
+import fpt.prm392.fe_salehunter.model.auth.RefreshTokenRequestModel;
+import fpt.prm392.fe_salehunter.model.auth.ChangePasswordRequestModel;
+import fpt.prm392.fe_salehunter.model.auth.ForgotPasswordRequestModel;
 import fpt.prm392.fe_salehunter.model.SignUpModel;
 import fpt.prm392.fe_salehunter.model.GoogleSocialAuthModel;
 import fpt.prm392.fe_salehunter.model.SocialAuthResponseModel;
@@ -47,10 +55,10 @@ public class Repository {
     }
 
     //Account Sign in/up & password reset
-    public LiveData<Response<UserResponseModel>> signIn(SignInModel signInModel){
+    public LiveData<Response<LoginResponseModel>> signIn(LoginRequestModel signInModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .signIn(signInModel)
+                        .login(signInModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -64,10 +72,10 @@ public class Repository {
         );
     }
 
-    public LiveData<Response<UserResponseModel>> signUp(SignUpModel signUpModel){
+    public LiveData<Response<RegisterResponseModel>> signUp(RegisterRequestModel signUpModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .signUp(signUpModel)
+                        .register(signUpModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -81,6 +89,8 @@ public class Repository {
         );
     }
 
+    // TODO: Social auth endpoints not implemented in new API yet
+    /*
     public LiveData<Response<SocialAuthResponseModel>> googleAuth(GoogleSocialAuthModel socialAuthModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
@@ -116,11 +126,15 @@ public class Repository {
         );
 
     }
+    */
 
-    public LiveData<Response<BaseResponseModel>> sendEmailVerification(EmailVerificationModel emailVerificationModel){
+    public LiveData<Response<BaseResponseModel>> sendEmailVerification(String email){
+        ForgotPasswordRequestModel forgotPasswordModel = new ForgotPasswordRequestModel();
+        forgotPasswordModel.setEmail(email);
+        
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .sendEmailVerification(emailVerificationModel)
+                        .forgotPassword(forgotPasswordModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -151,10 +165,31 @@ public class Repository {
         );
     }
 
-    public LiveData<Response<BaseResponseModel>> resetPassword(String pin, ResetPasswordModel resetPasswordModel){
+    public LiveData<Response<BaseResponseModel>> resetPassword(ResetPasswordRequestModel resetPasswordModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .resetPassword(pin,resetPasswordModel)
+                        .resetPassword(resetPasswordModel)
+                        .subscribeOn(Schedulers.io())
+                        .onErrorReturn( exception -> {
+                            exception.printStackTrace();
+
+                            if(exception.getClass() == HttpException.class)
+                                return Response.error(((HttpException)exception).code(), ResponseBody.create(null,""));
+
+                            return Response.error(BaseResponseModel.FAILED_REQUEST_FAILURE, ResponseBody.create(null,""));
+                        })
+                        .toFlowable(BackpressureStrategy.LATEST)
+        );
+    }
+
+    //Token refresh for expired access tokens
+    public LiveData<Response<LoginResponseModel>> refreshToken(String refreshToken){
+        RefreshTokenRequestModel refreshTokenModel = new RefreshTokenRequestModel();
+        refreshTokenModel.setRefreshToken(refreshToken);
+        
+        return LiveDataReactiveStreams.fromPublisher(
+                mainClient.create(RetrofitInterface.class)
+                        .refreshToken(refreshTokenModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -172,7 +207,7 @@ public class Repository {
     public LiveData<Response<UserResponseModel>> getUser(String token){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .getUser(token)
+                        .getUserProfile(token)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -189,7 +224,7 @@ public class Repository {
     public LiveData<Response<UserResponseModel>> updateUser(String token, UserModel userModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .updateUser(token, userModel)
+                        .updateUserProfile(token, userModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -203,7 +238,7 @@ public class Repository {
         );
     }
 
-    public LiveData<Response<BaseResponseModel>> changePassword(String token, ChangePasswordModel changePasswordModel){
+    public LiveData<Response<BaseResponseModel>> changePassword(String token, ChangePasswordRequestModel changePasswordModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
                         .changePassword(token, changePasswordModel)
@@ -220,10 +255,10 @@ public class Repository {
         );
     }
 
-    public LiveData<Response<ProductsResponseModel>> searchProducts(String token,String language, double userLat, double userLong, String keyword, String storeType, String sort, long minPrice, long maxPrice, String category, String brand, long cursorLastItemId, int limit){
+    public LiveData<Response<ProductsResponseModel>> searchProducts(String token, String query, Long storeId, String category, Double minPrice, Double maxPrice){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .searchProducts(token,language,userLat,userLong,keyword,storeType,sort,minPrice,maxPrice,category,brand,cursorLastItemId,limit)
+                        .searchProducts(token, query, storeId, category, minPrice, maxPrice)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -292,7 +327,7 @@ public class Repository {
     public LiveData<Response<BaseResponseModel>> addFavourite(String token, long productId){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .addFavourite(token, productId)
+                        .addToFavorites(token, productId)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -309,7 +344,7 @@ public class Repository {
     public LiveData<Response<BaseResponseModel>> removeFavourite(String token, long productId){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .removeFavourite(token, productId)
+                        .removeFromFavorites(token, productId)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -355,13 +390,12 @@ public class Repository {
                         })
                         .toFlowable(BackpressureStrategy.LATEST)
         );
-
     }
 
     public LiveData<Response<ProductsResponseModel>> getProductsViewsHistory(String token){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .getProductsViewsHistory(token)
+                        .getViewHistory(token)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -373,7 +407,6 @@ public class Repository {
                         })
                         .toFlowable(BackpressureStrategy.LATEST)
         );
-
     }
 
     public LiveData<Response<ProductsResponseModel>> getFavoriteProducts(String token){
@@ -409,14 +442,13 @@ public class Repository {
                         })
                         .toFlowable(BackpressureStrategy.LATEST)
         );
-
     }
 
     //Store Calls
-    public LiveData<Response<StorePageModel>> getStore(String token, long storeId, int page){
+    public LiveData<Response<StorePageModel>> getStore(String token, long storeId){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .getStore(token,storeId,page)
+                        .getStore(token, storeId)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -466,10 +498,10 @@ public class Repository {
     }
 
     //Dashboard Calls
-    public LiveData<Response<BaseResponseModel>> createProduct(String token, long storeId,CreateProductRequestModel createProductRequestModel){
+    public LiveData<Response<BaseResponseModel>> createProduct(String token, CreateProductRequestModel createProductRequestModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .createProduct(token,storeId,createProductRequestModel)
+                        .createProduct(token, createProductRequestModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -483,10 +515,10 @@ public class Repository {
         );
     }
 
-    public LiveData<Response<BaseResponseModel>> updateProduct(String token, long storeId, long productId,CreateProductRequestModel createProductRequestModel){
+    public LiveData<Response<BaseResponseModel>> updateProduct(String token, long productId, CreateProductRequestModel createProductRequestModel){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .updateProduct(token,storeId,productId,createProductRequestModel)
+                        .updateProduct(token, productId, createProductRequestModel)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();
@@ -500,10 +532,10 @@ public class Repository {
         );
     }
 
-    public LiveData<Response<BaseResponseModel>> deleteProduct(String token, long storeId, long productId){
+    public LiveData<Response<BaseResponseModel>> deleteProduct(String token, long productId){
         return LiveDataReactiveStreams.fromPublisher(
                 mainClient.create(RetrofitInterface.class)
-                        .deleteProduct(token,storeId,productId)
+                        .deleteProduct(token, productId)
                         .subscribeOn(Schedulers.io())
                         .onErrorReturn( exception -> {
                             exception.printStackTrace();

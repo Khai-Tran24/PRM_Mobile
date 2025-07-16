@@ -25,4 +25,13 @@ public class ResetPasswordModel {
     public void setPasswordConfirm(String passwordConfirm) {
         this.passwordConfirm = passwordConfirm;
     }
+
+    public fpt.prm392.fe_salehunter.model.auth.ResetPasswordRequestModel toResetPasswordRequestModel(String token, String email) {
+        return new fpt.prm392.fe_salehunter.model.auth.ResetPasswordRequestModel(
+            token,
+            email,
+            this.password, 
+            this.passwordConfirm
+        );
+    }
 }

@@ -36,4 +36,12 @@ public class ChangePasswordModel {
     public void setNewPasswordConfirm(String newPasswordConfirm) {
         this.newPasswordConfirm = newPasswordConfirm;
     }
+
+    public fpt.prm392.fe_salehunter.model.auth.ChangePasswordRequestModel toChangePasswordRequestModel() {
+        return new fpt.prm392.fe_salehunter.model.auth.ChangePasswordRequestModel(
+            this.oldPassword, 
+            this.newPassword, 
+            this.newPasswordConfirm
+        );
+    }
 }

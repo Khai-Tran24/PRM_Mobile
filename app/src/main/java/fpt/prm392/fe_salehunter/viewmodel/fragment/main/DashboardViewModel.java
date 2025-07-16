@@ -31,13 +31,13 @@ public class DashboardViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<StorePageModel>> getStore(){
-        storeData = repository.getStore(token,storeId,1);
+        storeData = repository.getStore(token,storeId);
         return storeData;
     }
 
     public LiveData<Response<StorePageModel>> getNextPage(){
         page++;
-        storeData = repository.getStore(token,storeId,page);
+        storeData = repository.getStore(token,storeId);
         return storeData;
     }
 

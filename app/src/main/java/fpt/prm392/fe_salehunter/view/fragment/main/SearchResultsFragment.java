@@ -64,6 +64,7 @@ import fpt.prm392.fe_salehunter.databinding.FragmentSearchResultsBinding;
 import fpt.prm392.fe_salehunter.model.BaseResponseModel;
 import fpt.prm392.fe_salehunter.model.ProductModel;
 import fpt.prm392.fe_salehunter.model.SortAndFilterModel;
+import fpt.prm392.fe_salehunter.model.UserModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
@@ -194,7 +195,10 @@ public class SearchResultsFragment extends Fragment{
 
         });
 
-        locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        // Add null safety check for getActivity()
+        if (getActivity() != null) {
+            locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        }
         locationProvider = LocationManager.GPS_PROVIDER;
         setLocating(false);
 
@@ -512,7 +516,11 @@ public class SearchResultsFragment extends Fragment{
         try {
         viewModel.setUserLocation(new LatLng(location.getLatitude(), location.getLongitude()));
 
-        if(userMark == null) userMark = googleMap.addMarker(new MarkerOptions().position(viewModel.getUserLocation()).title(UserAccountManager.getUser(getContext()).getFullName()).snippet(getString(R.string.Your_Location)).icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_user_mark)));
+        // Add null safety check for user
+        UserModel currentUser = UserAccountManager.getUser(getContext());
+        String userTitle = currentUser != null ? currentUser.getFullName() : "User";
+        
+        if(userMark == null) userMark = googleMap.addMarker(new MarkerOptions().position(viewModel.getUserLocation()).title(userTitle).snippet(getString(R.string.Your_Location)).icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_user_mark)));
         else userMark.setPosition(viewModel.getUserLocation());
 
         userMark.showInfoWindow();

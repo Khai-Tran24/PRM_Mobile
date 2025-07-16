@@ -5,44 +5,65 @@ import com.google.gson.annotations.SerializedName;
 public class UserModel {
 
     @SerializedName("id")
-    private String id;
+    private long id;
 
-    @SerializedName("fullname")
+    @SerializedName("name")
     private String fullName;
 
     @SerializedName("email")
     private String email;
 
-    @SerializedName("profile_img")
+    @SerializedName("phoneNumber")
+    private String phoneNumber;
+
+    @SerializedName("profileImageUrl")
     private String image;
 
-    @SerializedName("last_seen")
+    @SerializedName("lastLoginDate")
     private String lastSeen;
 
     @SerializedName("signedInWith")
     private int signedInWith;
 
-    @SerializedName("store_id")
-    private int storeId;
+    @SerializedName("storeId")
+    private Long storeId;
+
+    @SerializedName("accountType")
+    private String accountType;
+
+    @SerializedName("hasStore")
+    private boolean hasStore;
+
+    @SerializedName("isActive")
+    private boolean isActive;
+
+    @SerializedName("createdAt")
+    private String createdAt;
 
     public static final int SIGNED_IN_WITH_EMAIL = 0;
     public static final int SIGNED_IN_WITH_GOOGLE = 1;
     public static final int SIGNED_IN_WITH_FACEBOOK = 2;
 
     public UserModel(){
-        id = "id";
+        id = 0;
         fullName = "fullName";
         email = "email@email.com";
+        phoneNumber = "";
         image = "";
         lastSeen = "";
         signedInWith = SIGNED_IN_WITH_EMAIL;
+        storeId = null;
+        accountType = "";
+        hasStore = false;
+        isActive = true;
+        createdAt = "";
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -62,13 +83,29 @@ public class UserModel {
         this.email = email;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
     public String getImageLink() {
-        return image.replace("http:","https:");
+        return image != null ? image.replace("http:","https:") : "";
     }
 
     public String getEncodedImage() {
-        if(image.contains("http")) return "";
-        return image;
+        if(image != null && image.contains("http")) return "";
+        return image != null ? image : "";
     }
 
     public void setEncodedImage(String image) {
@@ -95,20 +132,47 @@ public class UserModel {
         this.signedInWith = signedInWith;
     }
 
-    public int getStoreId() {
+    public Long getStoreId() {
         return storeId;
     }
 
-    public void setStoreId(int storeId) {
+    public void setStoreId(Long storeId) {
         this.storeId = storeId;
     }
 
-    public boolean hasStore(){
-        return storeId != 0;
+    public String getAccountType() {
+        return accountType;
     }
 
-    public String getAccountType(){
-        if (hasStore()) return "Seller Account";
-        else return "User Account";
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public boolean isHasStore() {
+        return hasStore;
+    }
+
+    public void setHasStore(boolean hasStore) {
+        this.hasStore = hasStore;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public boolean hasStore(){
+        return hasStore || (storeId != null && storeId > 0);
     }
 }

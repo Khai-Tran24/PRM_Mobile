@@ -140,10 +140,15 @@ public class ResetPasswordFragment extends Fragment {
         DialogsProvider.get(getActivity()).setLoading(true);
 
         String pin="";
-        if(getArguments()!=null) pin = getArguments().getString("pin");
+        String email="";
+        if(getArguments()!=null) {
+            pin = getArguments().getString("pin");
+            email = getArguments().getString("email");
+        }
 
         viewModel.resetPassword(
                 pin,
+                email,
                 vb.resetPasswordPassword.getEditText().getText().toString(),
                 vb.resetPasswordPasswordConfirm.getEditText().getText().toString()
         ).observe(getViewLifecycleOwner(), response ->{

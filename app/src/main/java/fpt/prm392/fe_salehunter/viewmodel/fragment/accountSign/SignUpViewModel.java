@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData;
 
 import fpt.prm392.fe_salehunter.data.Repository;
 import fpt.prm392.fe_salehunter.model.SignUpModel;
-import fpt.prm392.fe_salehunter.model.UserResponseModel;
+import fpt.prm392.fe_salehunter.model.auth.RegisterResponseModel;
 import retrofit2.Response;
 
 public class SignUpViewModel extends AndroidViewModel {
@@ -20,7 +20,7 @@ public class SignUpViewModel extends AndroidViewModel {
         repository = new Repository();
     }
 
-    public LiveData<Response<UserResponseModel>> signUp(String name , String email, String password, String passwordConfirm, String image){
+    public LiveData<Response<RegisterResponseModel>> signUp(String name , String email, String password, String passwordConfirm, String image){
         SignUpModel signUpModel = new SignUpModel();
         signUpModel.setFullName(name);
         signUpModel.setEmail(email);
@@ -28,7 +28,7 @@ public class SignUpViewModel extends AndroidViewModel {
         signUpModel.setPasswordConfirm(passwordConfirm);
         signUpModel.setProfileImage(image);
 
-        return repository.signUp(signUpModel);
+        return repository.signUp(signUpModel.toRegisterRequestModel());
     }
 
 }

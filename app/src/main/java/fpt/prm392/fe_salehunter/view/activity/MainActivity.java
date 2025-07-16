@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         firstLaunch = SharedPrefManager.get(this).isFirstLaunch();
         rememberMe = SharedPrefManager.get(this).isRememberMeChecked();
-        signedIn = true; //SharedPrefManager.get(this).isSignedIn();
+        signedIn = SharedPrefManager.get(this).isSignedIn(); // Fixed: Use actual sign-in state
         token = UserAccountManager.getToken(this, UserAccountManager.TOKEN_TYPE_BEARER);
         user = UserAccountManager.getUser(this);
 
@@ -127,11 +127,19 @@ public class MainActivity extends AppCompatActivity {
         if (firstLaunch) {
             startActivity(new Intent(this, AppIntro.class));
             finish();
-        } else if (!signedIn) {
+        } else if (!signedIn || token == null || token.isEmpty()) {
+            // Fixed: Check for null/empty token as well
             startActivity(new Intent(this, AccountSign.class));
             finish();
-        } else if (!(rememberMe || justSignedIn)) UserAccountManager.signOut(this, true);
-        else {
+        } else if (!(rememberMe || justSignedIn)) {
+            UserAccountManager.signOut(this, true);
+        } else {
+            // Ensure user object is not null before proceeding
+            if (user == null) {
+                // If user is null but we're supposedly signed in, sign out and redirect to login
+                UserAccountManager.signOut(this, true);
+                return;
+            }
 
             // Comment these two lines to skip sign in
             loadUserData(null); //From Local Storage
@@ -147,16 +155,18 @@ public class MainActivity extends AppCompatActivity {
                 else if (i == R.id.menu_profile)
                     navigateToFragment(R.id.profileFragment);
                 else if (i == R.id.menu_dashboard) {
-                    underlayNavigationDrawer.closeMenu();
-                    new Handler().postDelayed(() -> {
-                        navController.popBackStack(R.id.dashboardFragment, true);
+                    if (user != null) {
+                        underlayNavigationDrawer.closeMenu();
+                        new Handler().postDelayed(() -> {
+                            navController.popBackStack(R.id.dashboardFragment, true);
 
-                        Bundle bundle = new Bundle();
-                        bundle.putLong("storeId", user.getStoreId());
-                        navController.navigate(R.id.dashboardFragment, bundle, new NavOptions.Builder().setEnterAnim(R.anim.fragment_in).setExitAnim(R.anim.fragment_out).build());
-                    }, underlayNavigationDrawer.getAnimationDuration());
+                            Bundle bundle = new Bundle();
+                            bundle.putLong("storeId", user.getStoreId());
+                            navController.navigate(R.id.dashboardFragment, bundle, new NavOptions.Builder().setEnterAnim(R.anim.fragment_in).setExitAnim(R.anim.fragment_out).build());
+                        }, underlayNavigationDrawer.getAnimationDuration());
+                    }
                 } else if (i == R.id.menu_mystore) {
-                    if (user.hasStore()) {
+                    if (user != null && user.hasStore()) {
                         underlayNavigationDrawer.closeMenu();
                         new Handler().postDelayed(() -> {
                             navController.popBackStack(R.id.storePageFragment, true);
@@ -166,7 +176,9 @@ public class MainActivity extends AppCompatActivity {
                             navController.navigate(R.id.storePageFragment, bundle, new NavOptions.Builder().setEnterAnim(R.anim.fragment_in).setExitAnim(R.anim.fragment_out).build());
 
                         }, underlayNavigationDrawer.getAnimationDuration());
-                    } else navigateToFragment(R.id.createStoreFragment);
+                    } else {
+                        navigateToFragment(R.id.createStoreFragment);
+                    }
                 } else if (i == R.id.menu_settings)
                     navigateToFragment(R.id.settingsFragment);
                 else if (i == R.id.menu_about)
@@ -232,8 +244,35 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        if (networkBroadcastReceiver != null) unregisterReceiver(networkBroadcastReceiver);
+        try {
+            super.onDestroy();
+            if (networkBroadcastReceiver != null) {
+                unregisterReceiver(networkBroadcastReceiver);
+            }
+        } catch (Exception e) {
+            // Log the error but don't crash the app
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        try {
+            super.onPause();
+        } catch (Exception e) {
+            // Protect against system-level crashes
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        try {
+            super.onResume();
+        } catch (Exception e) {
+            // Protect against system-level crashes
+            e.printStackTrace();
+        }
     }
 
     void navigateToFragment(int id) {
@@ -246,43 +285,101 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void syncUserData() {
-        if (UserAccountManager.getUser(this).getSignedInWith() != UserModel.SIGNED_IN_WITH_EMAIL)
-            return;
-
-        viewModel.getUser(token).observe(this, response -> {
-            switch (response.code()) {
-                case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    UserModel user = response.body().getUser();
-                    UserAccountManager.updateUser(getApplicationContext(), user);
-                    loadUserData(user);
-                    break;
-
-                case BaseResponseModel.FAILED_AUTH:
-                    UserAccountManager.signOut(MainActivity.this, true);
-                    break;
-
-                case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    //Toast.makeText(this, "Data Sync Failed !", Toast.LENGTH_SHORT).show();
-                    break;
+        try {
+            UserModel currentUser = UserAccountManager.getUser(this);
+            if (currentUser == null || currentUser.getSignedInWith() != UserModel.SIGNED_IN_WITH_EMAIL) {
+                return;
             }
-        });
+
+            if (token == null || token.isEmpty()) {
+                UserAccountManager.signOut(MainActivity.this, true);
+                return;
+            }
+
+            viewModel.getUser(token).observe(this, response -> {
+                try {
+                    if (response == null) {
+                        return;
+                    }
+
+                    switch (response.code()) {
+                        case BaseResponseModel.SUCCESSFUL_OPERATION:
+                            if (response.body() != null && response.body().getUser() != null) {
+                                UserModel user = response.body().getUser();
+                                UserAccountManager.updateUser(getApplicationContext(), user);
+                                loadUserData(user);
+                            }
+                            break;
+
+                        case BaseResponseModel.FAILED_AUTH:
+                            UserAccountManager.signOut(MainActivity.this, true);
+                            break;
+
+                        case BaseResponseModel.FAILED_REQUEST_FAILURE:
+                            //Toast.makeText(this, "Data Sync Failed !", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void loadUserData(UserModel userModel) {
-        if (userModel != null) user = userModel;
-        else user = UserAccountManager.getUser(this);
+        try {
+            if (userModel != null) {
+                user = userModel;
+            } else {
+                user = UserAccountManager.getUser(this);
+            }
 
-        vb.menuUsername.setText(user.getFullName());
-        vb.menuAccountType.setText(user.getAccountType());
-        Glide.with(this).load(user.getImageLink())
-                .centerCrop()
-                .transition(DrawableTransitionOptions.withCrossFade(50))
-                .placeholder(R.drawable.profile_placeholder)
-                .circleCrop()
-                .into(vb.menuProfilePic);
+            // Additional null safety check
+            if (user == null) {
+                // If user is still null, sign out and redirect to login
+                UserAccountManager.signOut(this, true);
+                return;
+            }
 
-        if (user.hasStore()) vb.menuDashboard.setVisibility(View.VISIBLE);
-        else vb.menuDashboard.setVisibility(View.GONE);
+            // Safe loading with null checks
+            String username = user.getFullName();
+            String accountType = user.getAccountType();
+            String imageLink = user.getImageLink();
+
+            if (vb != null) {
+                if (vb.menuUsername != null && username != null) {
+                    vb.menuUsername.setText(username);
+                }
+                
+                if (vb.menuAccountType != null && accountType != null) {
+                    vb.menuAccountType.setText(accountType);
+                }
+
+                if (vb.menuProfilePic != null) {
+                    Glide.with(this)
+                        .load(imageLink != null ? imageLink : "")
+                        .centerCrop()
+                        .transition(DrawableTransitionOptions.withCrossFade(50))
+                        .placeholder(R.drawable.profile_placeholder)
+                        .circleCrop()
+                        .into(vb.menuProfilePic);
+                }
+
+                if (vb.menuDashboard != null) {
+                    if (user.hasStore()) {
+                        vb.menuDashboard.setVisibility(View.VISIBLE);
+                    } else {
+                        vb.menuDashboard.setVisibility(View.GONE);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // If anything goes wrong, sign out safely
+            UserAccountManager.signOut(this, true);
+        }
     }
 
     public NavController getAppNavController() {
@@ -290,9 +387,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setTitle(String title) {
-        vb.currentFragmentTitle.post(() -> {
-            vb.currentFragmentTitle.setText(title);
-        });
+        try {
+            if (vb != null && vb.currentFragmentTitle != null && title != null) {
+                vb.currentFragmentTitle.post(() -> {
+                    vb.currentFragmentTitle.setText(title);
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

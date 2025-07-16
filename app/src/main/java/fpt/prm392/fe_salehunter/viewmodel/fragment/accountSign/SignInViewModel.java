@@ -39,7 +39,7 @@ import fpt.prm392.fe_salehunter.model.FacebookSocialAuthModel;
 import fpt.prm392.fe_salehunter.model.SignInModel;
 import fpt.prm392.fe_salehunter.model.GoogleSocialAuthModel;
 import fpt.prm392.fe_salehunter.model.SocialAuthResponseModel;
-import fpt.prm392.fe_salehunter.model.UserResponseModel;
+import fpt.prm392.fe_salehunter.model.auth.LoginResponseModel;
 import retrofit2.Response;
 
 public class SignInViewModel extends AndroidViewModel {
@@ -65,12 +65,12 @@ public class SignInViewModel extends AndroidViewModel {
         googleSignInClient = GoogleSignIn.getClient(application, googleSignInOptions);
     }
 
-    public LiveData<Response<UserResponseModel>> signIn(String email, String password){
+    public LiveData<Response<LoginResponseModel>> signIn(String email, String password){
         SignInModel signInModel = new SignInModel();
         signInModel.setEmail(email);
         signInModel.setPassword(password);
 
-        return repository.signIn(signInModel);
+        return repository.signIn(signInModel.toLoginRequestModel());
     }
 
     public void googleAuth(Fragment fragment){
@@ -95,7 +95,8 @@ public class SignInViewModel extends AndroidViewModel {
                 googleSocialAuthModel.setFullName(account.getGivenName()+" "+account.getFamilyName());
                 googleSocialAuthModel.setImage(account.getPhotoUrl().toString().replace("s96-c", "s500-c"));
 
-                repository.googleAuth(googleSocialAuthModel).observe(fragment.getViewLifecycleOwner(), backendResponse::setValue);
+                // TODO: Google auth not implemented in new backend yet
+                // repository.googleAuth(googleSocialAuthModel).observe(fragment.getViewLifecycleOwner(), backendResponse::setValue);
 
             } catch (ApiException e) { e.printStackTrace(); }
 
@@ -133,7 +134,8 @@ public class SignInViewModel extends AndroidViewModel {
                             facebookSocialAuthModel.setFullName(first_name+" "+last_name);
                             facebookSocialAuthModel.setImage(picture);
 
-                            repository.facebookAuth(facebookSocialAuthModel).observe(fragment.getViewLifecycleOwner(), backendResponse::setValue);
+                            // TODO: Facebook auth not implemented in new backend yet
+                            // repository.facebookAuth(facebookSocialAuthModel).observe(fragment.getViewLifecycleOwner(), backendResponse::setValue);
 
                         } catch (JSONException e) { e.printStackTrace();}
 

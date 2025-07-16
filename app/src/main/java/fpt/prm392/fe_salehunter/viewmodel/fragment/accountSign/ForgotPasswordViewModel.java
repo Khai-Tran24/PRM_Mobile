@@ -20,9 +20,7 @@ public class ForgotPasswordViewModel extends AndroidViewModel {
     }
 
     public LiveData<Response<BaseResponseModel>> sendEmailVerification(String email){
-        EmailVerificationModel emailVerificationModel = new EmailVerificationModel();
-        emailVerificationModel.setEmail(email);
-        return repository.sendEmailVerification(emailVerificationModel);
+        return repository.sendEmailVerification(email);
     }
 
 }

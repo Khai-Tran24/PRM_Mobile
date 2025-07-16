@@ -177,6 +177,9 @@ public class VerificationCodeFragment extends Fragment {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
                     Bundle bundle = new Bundle();
                     bundle.putString("pin",pin.toString());
+                    String email = "";
+                    if(getArguments()!=null) email = getArguments().getString("email");
+                    bundle.putString("email", email);
                     navController.navigate(R.id.action_verificationCodeFragment_to_resetPasswordFragment, bundle);
                     break;
 
@@ -211,13 +214,15 @@ public class VerificationCodeFragment extends Fragment {
             DialogsProvider.get(getActivity()).setLoading(false);
             switch (response.code()){
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
-
-                    Snackbar snackbar = Snackbar.make(getActivity().findViewById(R.id.verification_code_snackbar_colayout),"New PIN is on the way! check your inbox.",15000);
-                    snackbar.getView().setBackground(ResourcesCompat.getDrawable(getResources(),R.drawable.snackbar,getActivity().getTheme()));
-                    snackbar.setBackgroundTint(getResources().getColor(R.color.lightModesecondary,getActivity().getTheme()));
-                    snackbar.setTextColor(Color.WHITE);
-                    snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
-                    snackbar.show();
+                    // Add null safety check for getActivity()
+                    if (getActivity() != null) {
+                        Snackbar snackbar = Snackbar.make(getActivity().findViewById(R.id.verification_code_snackbar_colayout),"New PIN is on the way! check your inbox.",15000);
+                        snackbar.getView().setBackground(ResourcesCompat.getDrawable(getResources(),R.drawable.snackbar,getActivity().getTheme()));
+                        snackbar.setBackgroundTint(getResources().getColor(R.color.lightModesecondary,getActivity().getTheme()));
+                        snackbar.setTextColor(Color.WHITE);
+                        snackbar.setAnimationMode(BaseTransientBottomBar.ANIMATION_MODE_SLIDE);
+                        snackbar.show();
+                    }
                     break;
 
                 case BaseResponseModel.FAILED_NOT_FOUND:

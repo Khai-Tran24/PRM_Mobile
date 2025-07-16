@@ -217,11 +217,19 @@ public class SignUpFragment extends Fragment {
             DialogsProvider.get(getActivity()).setLoading(false);
 
             switch (response.code()){
-                case BaseResponseModel.SUCCESSFUL_CREATION:
+                case BaseResponseModel.SUCCESSFUL_OPERATION:
                     Intent intent = new Intent(getContext(), MainActivity.class);
                     intent.putExtra(MainActivity.JUST_SIGNED_IN,true);
 
-                    UserAccountManager.signIn(getActivity(), intent, response.headers().get(Repository.AUTH_TOKEN_HEADER), response.body().getUser());
+                    // Add null safety check for response body and extract accessToken correctly
+                    if (response.body() != null && response.body().getData() != null && 
+                        response.body().getData().getUser() != null && 
+                        response.body().getData().getAccessToken() != null) {
+                        UserAccountManager.signInWithTokens(getActivity(), intent, 
+                                response.body().getData().getAccessToken(), 
+                                response.body().getData().getRefreshToken(), 
+                                response.body().getData().getUser());
+                    }
                     break;
 
                 case BaseResponseModel.FAILED_DATA_CONFLICT:
