@@ -9,7 +9,7 @@ public class ProductsResponseModel extends BaseResponseModel {
     @SerializedName("results")
     private int resultsCount;
 
-    @SerializedName("products")
+    @SerializedName("data")
     private ArrayList<ProductModel> products;
 
     public int getResultsCount() {
