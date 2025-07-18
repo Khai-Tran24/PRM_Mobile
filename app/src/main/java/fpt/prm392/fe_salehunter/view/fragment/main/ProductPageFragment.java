@@ -9,9 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.TextPaint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,33 +36,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ImagesSliderViewPagerAdapter;
 import fpt.prm392.fe_salehunter.databinding.FragmentProductPageBinding;
 import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
 import fpt.prm392.fe_salehunter.model.ProductPageModel;
 import fpt.prm392.fe_salehunter.util.AppSettingsManager;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.ProductPageViewModel;
-import lecho.lib.hellocharts.gesture.ContainerScrollType;
-import lecho.lib.hellocharts.gesture.ZoomType;
-import lecho.lib.hellocharts.model.Axis;
-import lecho.lib.hellocharts.model.AxisValue;
-import lecho.lib.hellocharts.model.Line;
-import lecho.lib.hellocharts.model.LineChartData;
-import lecho.lib.hellocharts.model.PointValue;
-import lecho.lib.hellocharts.model.ValueShape;
-import lecho.lib.hellocharts.view.LineChartView;
-
 
 public class ProductPageFragment extends Fragment {
     private FragmentProductPageBinding vb;
@@ -70,7 +56,6 @@ public class ProductPageFragment extends Fragment {
     private NavController navController;
 
     private ImagesSliderViewPagerAdapter imageSliderAdapter;
-    private LineChartView lineChartView;
     private CheckBox[] userRatingStars;
     private int userRatingNewValue;
 
@@ -78,20 +63,17 @@ public class ProductPageFragment extends Fragment {
 
     public ProductPageFragment() {
         // Required empty public constructor
-
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        vb = FragmentProductPageBinding.inflate(inflater,container,false);
+        vb = FragmentProductPageBinding.inflate(inflater, container, false);
         return vb.getRoot();
     }
 
@@ -115,17 +97,17 @@ public class ProductPageFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(ProductPageViewModel.class);
         if (getArguments() != null) viewModel.setProductId(getArguments().getLong("productId"));
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
+        new Handler().post(() -> {
+            navController = ((MainActivity) getActivity()).getAppNavController();
         });
 
         imageSliderAdapter = new ImagesSliderViewPagerAdapter(getContext());
         vb.productPageImagesSlider.setAdapter(imageSliderAdapter);
 
-        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(vb.productPageImagesSliderIndicator, vb.productPageImagesSlider,(tab, position) ->{ });
+        TabLayoutMediator tabLayoutMediator = new TabLayoutMediator(vb.productPageImagesSliderIndicator, vb.productPageImagesSlider, (tab, position) -> { });
         tabLayoutMediator.attach();
 
-        ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.product_page_map)).getMapAsync(map ->{
+        ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.product_page_map)).getMapAsync(map -> {
             this.googleMap = map;
 
             googleMap.getUiSettings().setCompassEnabled(true);
@@ -134,65 +116,64 @@ public class ProductPageFragment extends Fragment {
             googleMap.getUiSettings().setZoomControlsEnabled(true);
             googleMap.getUiSettings().setAllGesturesEnabled(false);
             googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
         });
 
         vb.productPageSubmitRate.setVisibility(View.INVISIBLE);
         userRatingStars = new CheckBox[]{vb.productPageRateStar1, vb.productPageRateStar2, vb.productPageRateStar3, vb.productPageRateStar4, vb.productPageRateStar5};
-        for(int i=0; i<userRatingStars.length; i++){
+        for (int i = 0; i < userRatingStars.length; i++) {
             final int index = i;
-            userRatingStars[i].setOnClickListener( (star)->{
+            userRatingStars[i].setOnClickListener((star) -> {
                 for (int j = 0; j <= index; j++) userRatingStars[j].setChecked(true);
-                for (int j = index+1; j < userRatingStars.length; j++) userRatingStars[j].setChecked(false);
-                userRatingNewValue = index+1;
+                for (int j = index + 1; j < userRatingStars.length; j++) userRatingStars[j].setChecked(false);
+                userRatingNewValue = index + 1;
                 showRatingSubmit(userRatingNewValue != viewModel.getProductPageModel().getUserRating());
             });
         }
 
-        vb.productPageFavourite.setOnCheckedChangeListener((button,checked)->{
-            if(checked) vb.productPageFavouriteText.setText(R.string.Remove);
+        vb.productPageFavourite.setOnCheckedChangeListener((button, checked) -> {
+            if (checked) vb.productPageFavouriteText.setText(R.string.Remove);
             else vb.productPageFavouriteText.setText(R.string.Add);
         });
 
-        vb.productPageFavourite.setOnClickListener( button ->{
-           setFavourite(vb.productPageFavourite.isChecked());
+        vb.productPageFavourite.setOnClickListener(button -> {
+            setFavourite(vb.productPageFavourite.isChecked());
         });
 
-        vb.productPageFavouriteText.setOnClickListener( button ->{
+        vb.productPageFavouriteText.setOnClickListener(button -> {
             vb.productPageFavourite.performClick();
         });
 
-        vb.productPageBack.setOnClickListener( button ->{
+        vb.productPageBack.setOnClickListener(button -> {
             getActivity().onBackPressed();
         });
 
-        vb.productPageStore.setOnClickListener( image ->{
+        vb.productPageStore.setOnClickListener(image -> {
             Bundle bundle = new Bundle();
-            bundle.putLong("storeId",viewModel.getProductPageModel().getStore().getStoreId());
-            navController.navigate(R.id.action_productPageFragment_to_storePageFragment,bundle);
+            bundle.putLong("storeId", viewModel.getProductPageModel().getStoreId());
+            navController.navigate(R.id.action_productPageFragment_to_storePageFragment, bundle);
         });
 
-        vb.productPageOpenSourcePageButton.setOnClickListener( button ->{
+        vb.productPageOpenSourcePageButton.setOnClickListener(button -> {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(viewModel.getProductPageModel().getMainInfo().getSourceUrl()));
+            intent.setData(Uri.parse(viewModel.getProductPageModel().getSourceUrl()));
             startActivity(intent);
         });
 
-        vb.productPageShareProductButton.setOnClickListener( button ->{
+        vb.productPageShareProductButton.setOnClickListener(button -> {
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT, viewModel.getProductPageModel().getMainInfo().getShareableUrl());
-            startActivity(Intent.createChooser(intent, viewModel.getProductPageModel().getMainInfo().getName()));
+            intent.putExtra(Intent.EXTRA_TEXT, viewModel.getProductPageModel().getShareableUrl());
+            startActivity(Intent.createChooser(intent, viewModel.getProductPageModel().getName()));
         });
 
-        vb.productPageNavigateButton.setOnClickListener( button ->{
-            Uri uri = Uri.parse("google.navigation:q="+viewModel.getProductPageModel().getStore().getStoreLatitude()+","+viewModel.getProductPageModel().getStore().getStoreLongitude());
+        vb.productPageNavigateButton.setOnClickListener(button -> {
+            Uri uri = Uri.parse("google.navigation:q=" + viewModel.getProductPageModel().getStoreLatitude() + "," + viewModel.getProductPageModel().getStoreLongitude());
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(uri);
             startActivity(intent);
         });
 
-        vb.productPageSubmitRate.setOnClickListener( button ->{
+        vb.productPageSubmitRate.setOnClickListener(button -> {
             rateProduct(userRatingNewValue);
             showRatingSubmit(false);
         });
@@ -200,18 +181,19 @@ public class ProductPageFragment extends Fragment {
         loadProductData();
     }
 
-    void loadProductData(){
+    void loadProductData() {
         vb.productPageLoadingPage.setVisibility(View.VISIBLE);
 
-        viewModel.getProduct().observe(getViewLifecycleOwner(), response ->{
-
-            switch (response.code()){
+        viewModel.getProduct().observe(getViewLifecycleOwner(), response -> {
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    if(response.body()!=null){
+                    if (response.body() != null && response.body().getProduct() != null) {
                         viewModel.setProductPageModel(response.body().getProduct());
                         renderProductData();
                         vb.productPageLoadingPage.setVisibility(View.GONE);
-                        vb.getRoot().startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.lay_on));
+                        vb.getRoot().startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.lay_on));
+                    } else {
+                        Toast.makeText(getContext(), "Dữ liệu sản phẩm rỗng", Toast.LENGTH_SHORT).show();
                     }
                     break;
 
@@ -220,84 +202,81 @@ public class ProductPageFragment extends Fragment {
                     break;
 
                 case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    Toast.makeText(getContext(), "Loading Failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Tải dữ liệu thất bại", Toast.LENGTH_SHORT).show();
                     break;
 
                 default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Lỗi server | Mã: " + response.code(), Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
-    boolean renderDataInLocalLanguage(){
-        switch (AppSettingsManager.getLanguageKey(getContext())){
+    boolean renderDataInLocalLanguage() {
+        switch (AppSettingsManager.getLanguageKey(getContext())) {
             case AppSettingsManager.LANGUAGE_ENGLISH:
                 return false;
             case AppSettingsManager.LANGUAGE_ARABIC:
                 return true;
             default:
                 String systemLanguage = Locale.getDefault().getLanguage();
-                if(systemLanguage.equals(AppSettingsManager.LANGUAGE_ARABIC)) return true;
-                else return false;
+                return systemLanguage.equals(AppSettingsManager.LANGUAGE_ARABIC);
         }
     }
 
-    void renderProductData(){
+    void renderProductData() {
         ProductPageModel productPageModel = viewModel.getProductPageModel();
+        if (productPageModel == null) {
+            Toast.makeText(getContext(), "Dữ liệu sản phẩm không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        if(renderDataInLocalLanguage()) vb.productPageTitle.setText(productPageModel.getMainInfo().getNameArabic());
-        else vb.productPageTitle.setText(productPageModel.getMainInfo().getName());
+        // Ngôn ngữ Ả Rập không được hỗ trợ trong JSON, sử dụng tên tiếng Anh
+        vb.productPageTitle.setText(productPageModel.getName());
 
-        vb.productPageBrand.setText(productPageModel.getMainInfo().getBrand());
-        Double productPrice = Double.parseDouble(String.format("%.2f",productPageModel.getPrices().get(0).getPrice()-(productPageModel.getPrices().get(0).getPrice()*productPageModel.getMainInfo().getSalePercent()/100)));
-        vb.productPagePrice.setText(productPrice+getString(R.string.currency));
-        vb.productPageSalePercent.setText(productPageModel.getMainInfo().getSalePercent()+getString(R.string.sale_percent));
-        vb.productPageRate.setText(productPageModel.getProductRating().getRating().substring(0,3));
-        vb.productPageViews.setText(productPageModel.getViews().getCount()+"");
+        vb.productPageBrand.setText(productPageModel.getBrand());
+        vb.productPagePrice.setText(String.format("%.2f", productPageModel.getFinalPrice()) + getString(R.string.currency));
+        vb.productPageSalePercent.setText(productPageModel.getSalePercent() + getString(R.string.sale_percent));
+        vb.productPageRate.setText(String.format("%.1f", productPageModel.getAverageRating()));
+        vb.productPageViews.setText(String.valueOf(0)); // JSON không có views, đặt mặc định là 0
         vb.productPageFavourite.setChecked(productPageModel.isFavorite());
         renderUserRating(productPageModel.getUserRating());
 
         Glide.with(this)
-                .load(productPageModel.getStore().getStoreLogo())
+                .load(productPageModel.getStoreImageUrl())
                 .transition(DrawableTransitionOptions.withCrossFade(100))
                 .into(vb.productPageStore);
 
         ArrayList<String> productImagesLinks = new ArrayList<>();
-        for(ProductPageModel.ProductImage i : productPageModel.getImages())
-            productImagesLinks.add(i.getImageUrl().replace("http://","https://"));
+        for (ProductPageModel.ProductImage i : productPageModel.getImages()) {
+            productImagesLinks.add(i.getImageUrl());
+        }
         imageSliderAdapter.addImages(productImagesLinks);
-        if(productImagesLinks.size() == 1) vb.productPageImagesSliderIndicator.setVisibility(View.INVISIBLE);
+        if (productImagesLinks.size() == 1) vb.productPageImagesSliderIndicator.setVisibility(View.INVISIBLE);
 
-        drawPriceTrackerChart(productPageModel.getPrices());
+        // Ẩn biểu đồ giá vì JSON không có prices
+        vb.productPageChart.setVisibility(View.GONE);
 
-        if(productPageModel.getStore().getStoreType().equals(ProductModel.ONLINE_STORE)){
+        // Kiểm tra cửa hàng trực tuyến dựa trên tọa độ
+        if (productPageModel.getStoreLatitude() == null || productPageModel.getStoreLongitude() == null) {
             vb.productPageMapSection.setVisibility(View.GONE);
             vb.productPageNavigateButton.setVisibility(View.GONE);
             vb.productPageDescription.setVisibility(View.GONE);
-        }
-        else {
-            ProductPageModel.Store store = productPageModel.getStore();
-            addProductOnMap(store.getStoreLatitude(),store.getStoreLongitude(),store.getStoreName());
+        } else {
+            addProductOnMap(productPageModel.getStoreLatitude(), productPageModel.getStoreLongitude(), productPageModel.getStoreName());
             vb.productPageOpenSourcePageButton.setVisibility(View.GONE);
 
-            String fullDescription;
-            if(renderDataInLocalLanguage()) fullDescription = productPageModel.getMainInfo().getDescriptionArabic();
-            else fullDescription = productPageModel.getMainInfo().getDescription();
-
-            if(fullDescription.length()>120){
-                String shortDescription = fullDescription.substring(0,110)+"... ";
+            String fullDescription = productPageModel.getDescription();
+            if (fullDescription.length() > 120) {
+                String shortDescription = fullDescription.substring(0, 110) + "... ";
 
                 SpannableString readMore = new SpannableString(getString(R.string.Read_More));
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
-
-                        vb.productPageDescription.animate().alpha(0).setDuration(250).withEndAction(()->{
+                        vb.productPageDescription.animate().alpha(0).setDuration(250).withEndAction(() -> {
                             vb.productPageDescription.setText(fullDescription);
                             vb.productPageDescription.animate().alpha(1f).setDuration(250).start();
                         }).start();
-
                     }
 
                     @Override
@@ -307,33 +286,31 @@ public class ProductPageFragment extends Fragment {
                     }
                 };
 
-                readMore.setSpan(clickableSpan,0,readMore.length(),Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                readMore.setSpan(clickableSpan, 0, readMore.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                 vb.productPageDescription.setText(shortDescription);
                 vb.productPageDescription.append(readMore);
                 vb.productPageDescription.setMovementMethod(LinkMovementMethod.getInstance());
-
+            } else {
+                vb.productPageDescription.setText(fullDescription);
             }
-            else vb.productPageDescription.setText(fullDescription);
-
         }
 
-        if(productPageModel.getMainInfo().getSalePercent() == 0) vb.productPageSalePercent.setVisibility(View.INVISIBLE);
-
+        if (productPageModel.getSalePercent() == 0) vb.productPageSalePercent.setVisibility(View.INVISIBLE);
     }
 
-    void renderUserRating(int stars){
-        if(stars>0) userRatingStars[stars-1].performClick();
+    void renderUserRating(int stars) {
+        if (stars > 0) userRatingStars[stars - 1].performClick();
     }
 
-    void showRatingSubmit(boolean show){
-        if(show == (vb.productPageSubmitRate.getVisibility()==View.VISIBLE)) return;
+    void showRatingSubmit(boolean show) {
+        if (show == (vb.productPageSubmitRate.getVisibility() == View.VISIBLE)) return;
 
-        if(show){
+        if (show) {
             vb.productPageSubmitRate.setVisibility(View.VISIBLE);
-            vb.productPageSubmitRate.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.zoom_in));
+            vb.productPageSubmitRate.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.zoom_in));
         } else {
             vb.productPageSubmitRate.setVisibility(View.INVISIBLE);
-            vb.productPageSubmitRate.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.zoom_out));
+            vb.productPageSubmitRate.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.zoom_out));
         }
     }
 
@@ -344,126 +321,34 @@ public class ProductPageFragment extends Fragment {
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(productLocation)
-                    .zoom(googleMap.getCameraPosition().zoom < 8 ? 8:googleMap.getCameraPosition().zoom)
+                    .zoom(googleMap.getCameraPosition().zoom < 8 ? 8 : googleMap.getCameraPosition().zoom)
                     .build();
 
-            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),2000,null);
-
-        } catch (Exception e){
-            Toast.makeText(getContext(), "Map Marker Error", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
-    void drawPriceTrackerChart(ArrayList<ProductPageModel.ProductPrice> prices){
-        lineChartView = vb.productPageChart;
-
-        List<AxisValue> xValues = new ArrayList<>();
-        List<PointValue> points = new ArrayList<>();
-
-        xValues.add(new AxisValue(0).setLabel("untracked"));
-        points.add(new PointValue(0,0));
-
-        for (int i=1; i<=prices.size(); i++){
-            xValues.add(new AxisValue(i).setLabel(dateTimeConvert(prices.get(i-1).getCreationDate())));
-            points.add(new PointValue(i, (float) prices.get(i-1).getPrice()));
-        }
-
-        Line line = new Line();
-        line.setValues(points);
-        line.setColor(getResources().getColor(R.color.lightModeprimary));
-        line.setStrokeWidth(3);
-        line.setHasPoints(true);
-        line.setShape(ValueShape.CIRCLE);
-        line.setPointColor(getResources().getColor(R.color.lightModeprimary));
-        line.setPointRadius(5);
-        line.setHasLabels(true);
-        line.setHasLines(true);
-        line.setCubic(true);
-        line.setFilled(true);
-        line.setAreaTransparency(50);
-
-        Axis axisX = new Axis();
-        axisX.setValues(xValues);
-        axisX.setName("Date");
-        axisX.setLineColor(Color.GRAY);
-        axisX.setTextColor(Color.GRAY);
-        axisX.setTextSize(14);
-        axisX.setTypeface(Typeface.DEFAULT);
-        axisX.setHasLines(true);
-        axisX.setMaxLabelChars(10);
-        axisX.setHasTiltedLabels(true);
-
-        Axis axisY = new Axis();
-        axisY.setLineColor(Color.GRAY);
-        axisY.setTextColor(Color.GRAY);
-        axisY.setTextSize(10);
-        axisY.setHasLines(true);
-
-        //setting chart data
-        List<Line> lines = new ArrayList<>();
-        lines.add(line);
-
-        LineChartData chartData = new LineChartData();
-        chartData.setLines(lines);
-        chartData.setAxisXBottom(axisX);
-        chartData.setAxisYLeft(axisY);
-        chartData.finish();
-
-        //send chart data to view
-        lineChartView.setLineChartData(chartData);
-        //set chart view settings
-        lineChartView.setInteractive(true);
-        lineChartView.setZoomType(ZoomType.HORIZONTAL_AND_VERTICAL);
-        lineChartView.setMaxZoom(5);
-        lineChartView.setContainerScrollEnabled(true, ContainerScrollType.HORIZONTAL);
-
-    }
-
-    public String dateTimeConvert(String dateTime){
-        String inputPattern = "yyyy-MM-dd'T'HH:mm:ss";
-        String outputPattern = "dd/MM/yyyy";
-
-        try {
-            SimpleDateFormat input = new SimpleDateFormat(inputPattern);
-            input.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-            Date parsed = input.parse(dateTime);
-
-            SimpleDateFormat destFormat = new SimpleDateFormat(outputPattern);
-            destFormat.setTimeZone(TimeZone.getDefault());
-
-            return destFormat.format(parsed);
-
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
         } catch (Exception e) {
-            e.printStackTrace();
+            Toast.makeText(getContext(), "Lỗi đánh dấu trên bản đồ", Toast.LENGTH_SHORT).show();
         }
-
-        return "-";
     }
 
-    void setFavourite(boolean favourite){
-        if(favourite){
-            viewModel.addFavourite().observe(getViewLifecycleOwner(), response ->{
+    void setFavourite(boolean favourite) {
+        if (favourite) {
+            viewModel.addFavourite().observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_CREATION)
-                    Toast.makeText(getContext(), "Error " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Lỗi " + response.code(), Toast.LENGTH_SHORT).show();
             });
-        }
-        else {
-            viewModel.removeFavourite().observe(getViewLifecycleOwner(), response ->{
+        } else {
+            viewModel.removeFavourite().observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_DELETED)
-                    Toast.makeText(getContext(), "Error " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Lỗi " + response.code(), Toast.LENGTH_SHORT).show();
             });
         }
-
     }
 
-    void rateProduct(int rating){
-        viewModel.rateProduct(rating).observe(getViewLifecycleOwner(), response ->{
+    void rateProduct(int rating) {
+        viewModel.rateProduct(rating).observe(getViewLifecycleOwner(), response -> {
             if (response.code() != BaseResponseModel.SUCCESSFUL_OPERATION)
-                Toast.makeText(getContext(), "Error " + response.code(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Lỗi " + response.code(), Toast.LENGTH_SHORT).show();
             else viewModel.getProductPageModel().setUserRating(userRatingNewValue);
         });
     }
-
 }
