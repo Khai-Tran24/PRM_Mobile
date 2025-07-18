@@ -5,62 +5,86 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 
 public class ProductPageModel {
-    @SerializedName("basic")
-    private MainInfo mainInfo;
+    private static final String WEBSITE_URL = "https://sale-hunter.vercel.app/";
 
-    @SerializedName("is_favourite")
-    private int favorite;
+    @SerializedName("id")
+    private long id;
 
-    @SerializedName("user_rating")
-    private int userRating;
+    @SerializedName("name")
+    private String name;
+
+    @SerializedName("description")
+    private String description;
+
+    @SerializedName("currentPrice")
+    private double currentPrice;
+
+    @SerializedName("salePercent")
+    private int salePercent;
+
+    @SerializedName("finalPrice")
+    private double finalPrice;
+
+    @SerializedName("brand")
+    private String brand;
+
+    @SerializedName("category")
+    private String category;
 
     @SerializedName("images")
     private ArrayList<ProductImage> images;
 
-    @SerializedName("prices")
-    private ArrayList<ProductPrice> prices;
+    @SerializedName("mainImage")
+    private String mainImage;
 
-    @SerializedName("rating")
-    private ProductRating productRating;
+    @SerializedName("averageRating")
+    private double averageRating;
 
-    @SerializedName("views")
-    private ProductViews views;
+    @SerializedName("ratingCount")
+    private int ratingCount;
 
-    @SerializedName("store")
-    private Store store;
+    @SerializedName("isFavorite")
+    private boolean isFavorite;
 
-    public static class MainInfo{
-        private final String WEBSITE_URL = "https://sale-hunter.vercel.app/";
+    @SerializedName("storeId")
+    private long storeId;
 
-        @SerializedName("product_id")
+    @SerializedName("storeName")
+    private String storeName;
+
+    @SerializedName("storeImageUrl")
+    private String storeImageUrl;
+
+    @SerializedName("storeLatitude")
+    private Double storeLatitude;
+
+    @SerializedName("storeLongitude")
+    private Double storeLongitude;
+
+    @SerializedName("createdDate")
+    private String createdDate;
+
+    @SerializedName("updatedDate")
+    private String updatedDate;
+
+    @SerializedName("isActive")
+    private boolean isActive;
+
+    // Thêm trường userRating để hỗ trợ fragment
+    private int userRating;
+
+    public static class ProductImage {
+        @SerializedName("id")
         private long id;
 
-        @SerializedName("product_title")
-        private String name;
+        @SerializedName("imageUrl")
+        private String imageUrl;
 
-        @SerializedName("product_title_ar")
-        private String nameArabic;
+        @SerializedName("isMainImage")
+        private boolean isMainImage;
 
-        @SerializedName("product_description")
-        private String description;
-
-        @SerializedName("product_description_ar")
-        private String descriptionArabic;
-
-        @SerializedName("product_sale")
-        private int salePercent;
-
-        @SerializedName("product_brand")
-        private String brand;
-
-        @SerializedName("product_category")
-        private String category;
-
-        @SerializedName("product_category_ar")
-        private String categoryArabic;
-
-        @SerializedName("product_url")
-        private String url;
+        @SerializedName("createdDate")
+        private String createdDate;
 
         public long getId() {
             return id;
@@ -70,252 +94,93 @@ public class ProductPageModel {
             this.id = id;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getNameArabic() {
-            return nameArabic;
-        }
-
-        public void setNameArabic(String nameArabic) {
-            this.nameArabic = nameArabic;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getDescriptionArabic() {
-            return descriptionArabic;
-        }
-
-        public void setDescriptionArabic(String descriptionArabic) {
-            this.descriptionArabic = descriptionArabic;
-        }
-
-        public int getSalePercent() {
-            return salePercent;
-        }
-
-        public void setSalePercent(int salePercent) {
-            this.salePercent = salePercent;
-        }
-
-        public String getBrand() {
-            return brand;
-        }
-
-        public void setBrand(String brand) {
-            this.brand = brand;
-        }
-
-        public String getCategory() {
-            return category;
-        }
-
-        public void setCategory(String category) {
-            this.category = category;
-        }
-
-        public String getCategoryArabic() {
-            return categoryArabic;
-        }
-
-        public void setCategoryArabic(String categoryArabic) {
-            this.categoryArabic = categoryArabic;
-        }
-
-        public String getSourceUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public String getShareableUrl(){
-            return WEBSITE_URL+"pid="+id;
-        }
-    }
-
-    public static class ProductImage{
-        @SerializedName("img_id")
-        private long imageId;
-
-        @SerializedName("img_url")
-        private String imageUrl;
-
-        public long getImageId() {
-            return imageId;
-        }
-
-        public void setImageId(long imageId) {
-            this.imageId = imageId;
-        }
-
         public String getImageUrl() {
-            return imageUrl.replace("http:","https:");
+            return imageUrl.replace("http:", "https:");
         }
 
         public void setImageUrl(String imageUrl) {
             this.imageUrl = imageUrl;
         }
-    }
 
-    public static class ProductPrice{
-        @SerializedName("price")
-        private double price;
-
-        @SerializedName("created_at")
-        private String creationDate;
-
-        public double getPrice() {
-            return price;
+        public boolean isMainImage() {
+            return isMainImage;
         }
 
-        public void setPrice(double price) {
-            this.price = price;
+        public void setMainImage(boolean mainImage) {
+            this.isMainImage = mainImage;
         }
 
-        public String getCreationDate() {
-            return creationDate;
+        public String getCreatedDate() {
+            return createdDate;
         }
 
-        public void setCreationDate(String creationDate) {
-            this.creationDate = creationDate;
+        public void setCreatedDate(String createdDate) {
+            this.createdDate = createdDate;
         }
     }
 
-    public static class ProductViews{
-        @SerializedName("number_of_views")
-        private int count;
-
-        public int getCount() {
-            return count;
-        }
-
-        public void setCount(int count) {
-            this.count = count;
-        }
+    public long getId() {
+        return id;
     }
 
-    public static class ProductRating{
-        @SerializedName("number_of_ratings")
-        private int count;
-
-        @SerializedName("rating_average")
-        private String rating;
-
-        public int getCount() {
-            return count;
-        }
-
-        public void setCount(int count) {
-            this.count = count;
-        }
-
-        public String getRating() {
-            if(rating==null) rating = "0.0";
-            return rating;
-        }
-
-        public void setRating(String rating) {
-            this.rating = rating;
-        }
+    public void setId(long id) {
+        this.id = id;
     }
 
-    public static class Store{
-        @SerializedName("store_id")
-        private long storeId;
-
-        @SerializedName("store_name")
-        private String storeName;
-
-        @SerializedName("store_type")
-        private String storeType;
-
-        @SerializedName("store_logo")
-        private String storeLogo;
-
-        @SerializedName("store_latitude")
-        private Double storeLatitude;
-
-        @SerializedName("store_longitude")
-        private Double storeLongitude;
-
-        public long getStoreId() {
-            return storeId;
-        }
-
-        public void setStoreId(long storeId) {
-            this.storeId = storeId;
-        }
-
-        public String getStoreName() {
-            return storeName;
-        }
-
-        public void setStoreName(String storeName) {
-            this.storeName = storeName;
-        }
-
-        public String getStoreType() {
-            return storeType;
-        }
-
-        public void setStoreType(String storeType) {
-            this.storeType = storeType;
-        }
-
-        public String getStoreLogo() {
-            return storeLogo.replace("http:","https:");
-        }
-
-        public void setStoreLogo(String storeLogo) {
-            this.storeLogo = storeLogo;
-        }
-
-        public Double getStoreLatitude() {
-            return storeLatitude;
-        }
-
-        public void setStoreLatitude(Double storeLatitude) {
-            this.storeLatitude = storeLatitude;
-        }
-
-        public Double getStoreLongitude() {
-            return storeLongitude;
-        }
-
-        public void setStoreLongitude(Double storeLongitude) {
-            this.storeLongitude = storeLongitude;
-        }
+    public String getName() {
+        return name;
     }
 
-    public MainInfo getMainInfo() {
-        return mainInfo;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setMainInfo(MainInfo mainInfo) {
-        this.mainInfo = mainInfo;
+    public String getDescription() {
+        return description;
     }
 
-    public void setFavorite(boolean favorite) {
-        if(favorite) this.favorite = 1;
-        else this.favorite = 0;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public boolean isFavorite() {
-        return favorite != 0;
+    public double getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public int getSalePercent() {
+        return salePercent;
+    }
+
+    public void setSalePercent(int salePercent) {
+        this.salePercent = salePercent;
+    }
+
+    public double getFinalPrice() {
+        return finalPrice;
+    }
+
+    public void setFinalPrice(double finalPrice) {
+        this.finalPrice = finalPrice;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public ArrayList<ProductImage> getImages() {
@@ -326,36 +191,100 @@ public class ProductPageModel {
         this.images = images;
     }
 
-    public ArrayList<ProductPrice> getPrices() {
-        return prices;
+    public String getMainImage() {
+        return mainImage != null ? mainImage.replace("http:", "https:") : null;
     }
 
-    public void setPrices(ArrayList<ProductPrice> prices) {
-        this.prices = prices;
+    public void setMainImage(String mainImage) {
+        this.mainImage = mainImage;
     }
 
-    public ProductRating getProductRating() {
-        return productRating;
+    public double getAverageRating() {
+        return averageRating;
     }
 
-    public void setProductRating(ProductRating productRating) {
-        this.productRating = productRating;
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
     }
 
-    public Store getStore() {
-        return store;
+    public int getRatingCount() {
+        return ratingCount;
     }
 
-    public void setStore(Store store) {
-        this.store = store;
+    public void setRatingCount(int ratingCount) {
+        this.ratingCount = ratingCount;
     }
 
-    public ProductViews getViews() {
-        return views;
+    public boolean isFavorite() {
+        return isFavorite;
     }
 
-    public void setViews(ProductViews views) {
-        this.views = views;
+    public void setFavorite(boolean favorite) {
+        this.isFavorite = favorite;
+    }
+
+    public long getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(long storeId) {
+        this.storeId = storeId;
+    }
+
+    public String getStoreName() {
+        return storeName;
+    }
+
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
+    }
+
+    public String getStoreImageUrl() {
+        return storeImageUrl != null ? storeImageUrl.replace("http:", "https:") : null;
+    }
+
+    public void setStoreImageUrl(String storeImageUrl) {
+        this.storeImageUrl = storeImageUrl;
+    }
+
+    public Double getStoreLatitude() {
+        return storeLatitude;
+    }
+
+    public void setStoreLatitude(Double storeLatitude) {
+        this.storeLatitude = storeLatitude;
+    }
+
+    public Double getStoreLongitude() {
+        return storeLongitude;
+    }
+
+    public void setStoreLongitude(Double storeLongitude) {
+        this.storeLongitude = storeLongitude;
+    }
+
+    public String getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(String updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 
     public int getUserRating() {
@@ -364,5 +293,13 @@ public class ProductPageModel {
 
     public void setUserRating(int userRating) {
         this.userRating = userRating;
+    }
+
+    public String getSourceUrl() {
+        return mainImage != null ? mainImage.replace("http:", "https:") : null;
+    }
+
+    public String getShareableUrl() {
+        return WEBSITE_URL + "pid=" + id;
     }
 }

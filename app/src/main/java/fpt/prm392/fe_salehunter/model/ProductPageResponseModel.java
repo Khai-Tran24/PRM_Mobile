@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class ProductPageResponseModel extends BaseResponseModel {
 
-    @SerializedName("product")
+    @SerializedName("data")
     private ProductPageModel product;
 
     public ProductPageModel getProduct() {
