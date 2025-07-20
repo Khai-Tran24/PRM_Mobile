@@ -20,6 +20,7 @@ import java.util.Locale;
 
 import fpt.prm392.fe_salehunter.model.ProductModel;
 import fpt.prm392.fe_salehunter.R;
+import fpt.prm392.fe_salehunter.model.ProductPageModel;
 import fpt.prm392.fe_salehunter.util.AppSettingsManager;
 
 public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
@@ -149,18 +150,33 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             //Store
             //if(isDarkModeEnabled()) holder.store.setImageTintList(ColorStateList.valueOf(Color.WHITE));
 
-            if(Data.get(position).getStoreImageUrl()!=null)
-            Glide.with(context)
-                    .load(Data.get(position).getStoreImageUrl())
-                    .transition(DrawableTransitionOptions.withCrossFade(250))
-                    .into(holder.store);
+            if(Data.get(position).getStoreImageUrl()!=null) {
+                Glide.with(context)
+                        .load(Data.get(position).getStoreImageUrl())
+                        .transition(DrawableTransitionOptions.withCrossFade(250))
+                        .into(holder.store);
+            }
 
             //Image
-            Glide.with(context)
-                    .load(Data.get(position).getMainImage())
-                    .centerCrop()
-                    .transition(DrawableTransitionOptions.withCrossFade(250))
-                    .into(holder.image);
+//            Glide.with(context)
+//                    .load(Data.get(position).getMainImage())
+//                    .centerCrop()
+//                    .transition(DrawableTransitionOptions.withCrossFade(250))
+//                    .into(holder.image);
+            ArrayList<String> productImagesLinks = new ArrayList<>();
+            for (ProductModel.ProductImageModel i : Data.get(position).getImages()) {
+                productImagesLinks.add(i.getImageUrl());
+            }
+            if (productImagesLinks.isEmpty()) {
+                holder.image.setImageResource(R.drawable.zz_havit_stereo_speakers_175);
+            } else {
+                String imageUrl = productImagesLinks.get(0); // Use the first image URL
+                Glide.with(context)
+                        .load(imageUrl)
+                        .centerCrop()
+                        .transition(DrawableTransitionOptions.withCrossFade(250))
+                        .into(holder.image);
+            }
 
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

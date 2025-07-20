@@ -94,7 +94,7 @@
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/product_page_toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="70dp"
+                    android:layout_height="80dp"
                     app:layout_collapseMode="pin"
                     android:layout_gravity="bottom"
                     app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
@@ -102,7 +102,8 @@
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginEnd="16dp">
+                        android:layout_marginEnd="16dp"
+                        android:layout_marginTop="37dp">
 
                         <TextView
                             android:id="@+id/product_page_brand"

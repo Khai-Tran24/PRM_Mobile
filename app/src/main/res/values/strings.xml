@@ -260,5 +260,6 @@
     <string name="Camera_Permission_Denied">Camera Permission Denied</string>
     <string name="main_settings">Main Settings</string>
     <string name="theme">Theme</string>
+    <string name="back_button" translatable="false">Back Button</string>
 
 </resources>

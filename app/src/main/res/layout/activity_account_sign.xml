@@ -16,6 +16,7 @@
         android:layout_marginBottom="2dp"
         android:adjustViewBounds="true"
         android:background="@drawable/borderless_ripple"
+        android:contentDescription="@string/back_button"
         android:cropToPadding="true"
         android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="@+id/account_sign_title"
