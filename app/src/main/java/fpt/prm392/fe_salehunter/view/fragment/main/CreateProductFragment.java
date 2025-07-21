@@ -441,7 +441,7 @@ public class CreateProductFragment extends Fragment {
             switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_CREATION:
                     Bundle bundle = new Bundle();
-                    bundle.putLong("storeId", productData.getStoreId());
+                    bundle.putLong("storeId", storeId);
                     navController.navigate(R.id.action_createProductFragment_to_dashboardFragment, bundle);
                     break;
 
@@ -728,3 +728,4 @@ public class CreateProductFragment extends Fragment {
         builder.show();
     }
 }
+
