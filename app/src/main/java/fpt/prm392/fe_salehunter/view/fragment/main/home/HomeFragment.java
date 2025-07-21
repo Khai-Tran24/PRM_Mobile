@@ -28,7 +28,6 @@ import fpt.prm392.fe_salehunter.viewmodel.fragment.main.home.HomeViewModel;
 public class HomeFragment extends Fragment {
     private FragmentHomeBinding vb;
     private NavController navController;
-    private HomeViewModel viewModel;
 
     private int index = 0;
 
@@ -57,7 +56,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ((MainActivity) getActivity()).setTitle(getString(R.string.Home));
+        ((MainActivity) requireActivity()).setTitle(getString(R.string.Home));
     }
 
     @Override
@@ -85,8 +84,7 @@ public class HomeFragment extends Fragment {
         }
 
         navController = Navigation.findNavController(view.findViewById(R.id.home_framgmentContainer));
-        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-
+        HomeViewModel viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
         vb.homeBarSearch.setOnClickListener(button -> {
             index = 0;

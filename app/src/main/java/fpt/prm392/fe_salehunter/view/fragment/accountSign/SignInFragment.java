@@ -19,8 +19,8 @@ import android.view.animation.AnimationUtils;
 
 import fpt.prm392.fe_salehunter.data.Repository;
 import fpt.prm392.fe_salehunter.databinding.FragmentSignInBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.SharedPrefManager;
 import fpt.prm392.fe_salehunter.util.TextFieldValidator;
@@ -197,7 +197,7 @@ public class SignInFragment extends Fragment {
                             }
                             break;
 
-                        case BaseResponseModel.FAILED_NOT_FOUND:
+                        case BaseResponseModel.FAILED_INVALID_DATA:
                             DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Welcome), getString(R.string.you_dont_have_an_account));
                             break;
 

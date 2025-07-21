@@ -38,14 +38,15 @@ import fpt.prm392.fe_salehunter.data.Repository;
 import fpt.prm392.fe_salehunter.model.FacebookSocialAuthModel;
 import fpt.prm392.fe_salehunter.model.SignInModel;
 import fpt.prm392.fe_salehunter.model.GoogleSocialAuthModel;
-import fpt.prm392.fe_salehunter.model.SocialAuthResponseModel;
-import fpt.prm392.fe_salehunter.model.auth.LoginResponseModel;
+import fpt.prm392.fe_salehunter.model.auth.LoginDataModel;
+import fpt.prm392.fe_salehunter.model.auth.SocialAuthResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import retrofit2.Response;
 
 public class SignInViewModel extends AndroidViewModel {
-    private Repository repository;
-    private CallbackManager facebookCallbackManager;
-    private GoogleSignInClient googleSignInClient;
+    private final Repository repository;
+    private final CallbackManager facebookCallbackManager;
+    private final GoogleSignInClient googleSignInClient;
 
     private GoogleSocialAuthModel googleSocialAuthModel;
     private FacebookSocialAuthModel facebookSocialAuthModel;
@@ -65,7 +66,7 @@ public class SignInViewModel extends AndroidViewModel {
         googleSignInClient = GoogleSignIn.getClient(application, googleSignInOptions);
     }
 
-    public LiveData<Response<LoginResponseModel>> signIn(String email, String password){
+    public LiveData<Response<BaseResponseModel<LoginDataModel>>> signIn(String email, String password){
         SignInModel signInModel = new SignInModel();
         signInModel.setEmail(email);
         signInModel.setPassword(password);

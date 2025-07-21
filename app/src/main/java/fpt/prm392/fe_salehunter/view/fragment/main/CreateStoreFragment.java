@@ -49,6 +49,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 
+import fpt.prm392.fe_salehunter.helper.FormValidationHelper;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -59,9 +61,10 @@ import java.util.concurrent.Executors;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.databinding.FragmentCreateStoreBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.StoreModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
+import fpt.prm392.fe_salehunter.model.request.CreateStoreRequestModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.store.StoreModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.ImageEncoder;
 import fpt.prm392.fe_salehunter.util.TextFieldValidator;
@@ -73,13 +76,13 @@ public class CreateStoreFragment extends Fragment {
     private FragmentCreateStoreBinding vb;
     private CreateStoreViewModel viewModel;
     private NavController navController;
+    private FormValidationHelper formValidationHelper;
 
     private Uri image;
     private ActivityResultLauncher<Intent> imagePicker;
 
     private LocationManager locationManager;
     private String locationProvider;
-    private LocationListener locationListener;
     private ActivityResultLauncher<IntentSenderRequest> locationDialogResultLauncher;
     private ActivityResultLauncher<String[]> locationPermission;
     private boolean gpsLocationDetected = false;
@@ -120,24 +123,20 @@ public class CreateStoreFragment extends Fragment {
             }
         });
 
-        locationDialogResultLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult result) {
-                if (result.getResultCode() == Activity.RESULT_OK) getAddressByGPS();
-            }
+        locationDialogResultLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) getAddressByGPS();
         });
 
-        locationPermission = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
-            @Override
-            public void onActivityResult(Map<String, Boolean> result) {
-                if(result.get(Manifest.permission.ACCESS_FINE_LOCATION) && result.get(Manifest.permission.ACCESS_COARSE_LOCATION)) getAddressByGPS();
-            }
+        locationPermission = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            if (Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION))
+                    && Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION)))
+                getAddressByGPS();
         });
 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         vb = FragmentCreateStoreBinding.inflate(inflater, container, false);
         return vb.getRoot();
@@ -159,15 +158,16 @@ public class CreateStoreFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (getArguments() != null){
+        if (getArguments() != null) {
             action = getArguments().getInt(ACTION_KEY);
-            if(action == ACTION_EDIT_STORE) storeData = new Gson().fromJson(getArguments().getString(STORE_DATA_KEY),StoreModel.class);
+            if (action == ACTION_EDIT_STORE)
+                storeData = new Gson().fromJson(getArguments().getString(STORE_DATA_KEY), StoreModel.class);
         }
 
         viewModel = new ViewModelProvider(this).get(CreateStoreViewModel.class);
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
+        new Handler().post(() -> {
+            navController = ((MainActivity) getActivity()).getAppNavController();
         });
 
         vb.createStoreLoadingAddress.setVisibility(View.GONE);
@@ -289,14 +289,14 @@ public class CreateStoreFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable editable) {
 
-                if (editable.toString().length() > 0 && TextFieldValidator.outLengthRange(editable.toString(), TextFieldValidator.PHONE_MIN, TextFieldValidator.PHONE_MAX)){
+                if (editable.toString().length() > 0 && TextFieldValidator.outLengthRange(editable.toString(), TextFieldValidator.PHONE_MIN, TextFieldValidator.PHONE_MAX)) {
                     vb.createStorePhone.setError(getString(R.string.Phone_Number_digits_should_be) + TextFieldValidator.PHONE_MIN + getString(R.string.digit));
                     vb.createStoreHasWhatsapp.setEnabled(false);
                     vb.createStoreHasWhatsapp.setChecked(false);
-                }
-                else{
+                } else {
                     vb.createStorePhone.setError(null);
-                    if(editable.toString().length() > 0) vb.createStoreHasWhatsapp.setEnabled(true);
+                    if (editable.toString().length() > 0)
+                        vb.createStoreHasWhatsapp.setEnabled(true);
                 }
 
             }
@@ -342,7 +342,8 @@ public class CreateStoreFragment extends Fragment {
                 if (editable.toString().length() > 0) {
                     if (TextFieldValidator.isValidUserNameId(editable.toString()))
                         vb.createStoreFacebook.setError(null);
-                    else vb.createStoreFacebook.setError(getString(R.string.Not_valid_facebook_username));
+                    else
+                        vb.createStoreFacebook.setError(getString(R.string.Not_valid_facebook_username));
                 } else vb.createStoreFacebook.setError(null);
 
             }
@@ -365,7 +366,8 @@ public class CreateStoreFragment extends Fragment {
                 if (editable.toString().length() > 0) {
                     if (TextFieldValidator.isValidUserNameId(editable.toString()))
                         vb.createStoreInstagram.setError(null);
-                    else vb.createStoreInstagram.setError(getString(R.string.Not_valid_instagram_username));
+                    else
+                        vb.createStoreInstagram.setError(getString(R.string.Not_valid_instagram_username));
                 } else vb.createStoreInstagram.setError(null);
 
             }
@@ -374,7 +376,7 @@ public class CreateStoreFragment extends Fragment {
         vb.createStoreAddress.getEditText().setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
-                if(b & !gpsLocationDetected) {
+                if (b & !gpsLocationDetected) {
                     DialogsProvider.get(getActivity()).messageDialog(getString(R.string.GPS_Location_Required), getString(R.string.Please_use_gps_button_first_to_get_accurate_store_location_then_you_can_edit_address_if_needed));
                     vb.createStoreAddress.getEditText().clearFocus();
                 }
@@ -385,15 +387,14 @@ public class CreateStoreFragment extends Fragment {
             getAddressByGPS();
         });
 
-        if(action == ACTION_EDIT_STORE){
+        if (action == ACTION_EDIT_STORE) {
             vb.createStoreSubmitButton.setText(R.string.Update_Store);
             vb.createStoreSubmitButton.setOnClickListener(button -> {
                 if (isDataValid()) updateStore();
             });
 
             renderStoreData();
-        }
-        else {
+        } else {
             vb.createStoreSubmitButton.setText(getString(R.string.Create_Store));
             vb.createStoreSubmitButton.setOnClickListener(button -> {
                 if (isDataValid()) createStore();
@@ -457,41 +458,46 @@ public class CreateStoreFragment extends Fragment {
     }
 
     void createStore() {
-
         DialogsProvider.get(getActivity()).setLoading(true);
 
         String encodedImage = null;
-        if(image!=null) encodedImage = ImageEncoder.get().encode(getContext(),image);
+        if (image != null) encodedImage = ImageEncoder.get().encode(getContext(), image);
+        CreateStoreRequestModel requestModel = CreateStoreRequestModel.builder()
+                .logoBase64(encodedImage)
+                .name(vb.createStoreName.getEditText().getText().toString())
+                .category(vb.createStoreCategory.getEditText().getText().toString())
+                .address(vb.createStoreAddress.getEditText().getText().toString())
+                .latitude(latitude)
+                .longitude(longitude)
+                .description(vb.createStoreDescription.getEditText().getText().toString())
+                .phone(vb.createStorePhone.getEditText().getText().toString())
+                .whatsappPhoneNumber(vb.createStoreHasWhatsapp.isChecked() ? vb.createStorePhone.getEditText().getText().toString() : null)
+                .websiteLink(vb.createStoreWebsite.getEditText().getText().toString())
+                .facebookLink("https://www.facebook.com/" + vb.createStoreFacebook.getEditText().getText().toString() + "/")
+                .instagramLink("https://www.instagram.com/" + vb.createStoreInstagram.getEditText().getText().toString() + "/")
+                .build();
 
-        viewModel.createStore(
-                encodedImage,
-                vb.createStoreName.getEditText().getText().toString(),
-                vb.createStoreCategory.getEditText().getText().toString(),
-                vb.createStoreAddress.getEditText().getText().toString(),
-                latitude,
-                longitude,
-                vb.createStoreDescription.getEditText().getText().toString(),
-                vb.createStorePhone.getEditText().getText().toString(),
-                vb.createStoreHasWhatsapp.isChecked(),
-                vb.createStoreWebsite.getEditText().getText().toString(),
-                vb.createStoreFacebook.getEditText().getText().toString(),
-                vb.createStoreInstagram.getEditText().getText().toString()
-        ).observe(getViewLifecycleOwner(), response -> {
+        viewModel.createStore(requestModel).observe(getViewLifecycleOwner(), response -> {
             DialogsProvider.get(getActivity()).setLoading(false);
 
-            switch (response.code()){
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_CREATION:
-                    StoreModel store = response.body().getStore();
+                    if (response.body() == null || response.body().getData() == null) {
+                        DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error), getString(R.string.No_data_received));
+                        return;
+                    }
+
+                    StoreModel store = response.body().getData();
                     UserModel user = UserAccountManager.getUser(getContext());
                     if (user != null) {
                         user.setStoreId(store.getId());
-                        UserAccountManager.updateUser(getContext(),user);
-                        ((MainActivity)getActivity()).loadUserData(user);
+                        UserAccountManager.updateUser(getContext(), user);
+                        ((MainActivity) getActivity()).loadUserData(user);
                     }
 
                     Bundle bundle = new Bundle();
-                    bundle.putLong("storeId",store.getId());
-                    navController.navigate(R.id.action_createStoreFragment2_to_storePageFragment,bundle);
+                    bundle.putLong("storeId", store.getId());
+                    navController.navigate(R.id.action_createStoreFragment2_to_storePageFragment, bundle);
                     break;
 
                 case BaseResponseModel.FAILED_AUTH:
@@ -499,7 +505,7 @@ public class CreateStoreFragment extends Fragment {
                     break;
 
                 default:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error),getString(R.string.Code)+ response.code());
+                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error), getString(R.string.Code) + response.code());
             }
 
             viewModel.removeObserverCreateStore(getViewLifecycleOwner());
@@ -507,11 +513,11 @@ public class CreateStoreFragment extends Fragment {
 
     }
 
-    void updateStore(){
+    void updateStore() {
         DialogsProvider.get(getActivity()).setLoading(true);
 
         String encodedImage = null;
-        if(image!=null) encodedImage = ImageEncoder.get().encode(getContext(),image);
+        if (image != null) encodedImage = ImageEncoder.get().encode(getContext(), image);
 
         viewModel.updateStore(
                 storeData.getId(),
@@ -530,7 +536,7 @@ public class CreateStoreFragment extends Fragment {
         ).observe(getViewLifecycleOwner(), response -> {
             DialogsProvider.get(getActivity()).setLoading(false);
 
-            switch (response.code()){
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
                     Bundle bundle = new Bundle();
                     bundle.putLong("storeId", storeData.getId());
@@ -542,14 +548,14 @@ public class CreateStoreFragment extends Fragment {
                     break;
 
                 default:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error),getString(R.string.Code)+ response.code());
+                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error), getString(R.string.Code) + response.code());
             }
 
             viewModel.removeObserverUpdateStore(getViewLifecycleOwner());
         });
     }
 
-    void renderStoreData(){
+    void renderStoreData() {
         Glide.with(this)
                 .load(storeData.getLogoUrl())
                 .placeholder(R.drawable.store_placeholder)
@@ -561,25 +567,23 @@ public class CreateStoreFragment extends Fragment {
         vb.createStoreAddress.getEditText().setText(storeData.getAddress());
         vb.createStoreDescription.getEditText().setText(storeData.getDescription());
         vb.createStorePhone.getEditText().setText(storeData.getPhone());
-        vb.createStoreHasWhatsapp.setChecked(storeData.getWhatsappPhone()!=null);
+        vb.createStoreHasWhatsapp.setChecked(storeData.getWhatsappPhone() != null);
         vb.createStoreWebsite.getEditText().setText(storeData.getWebsiteUrl());
 
         try {
             String facebookLink = storeData.getFacebookUrl();
-            String facebookUsername = new URL(facebookLink).getPath().replace("/","");
+            String facebookUsername = new URL(facebookLink).getPath().replace("/", "");
             vb.createStoreFacebook.getEditText().setText(facebookUsername);
-        }
-        catch (Exception e){
-            Log.e("Exception",e.getMessage());
+        } catch (Exception e) {
+            Log.e("Exception", e.getMessage());
         }
 
         try {
-        String instagramLink = storeData.getInstagramUrl();
-        String instagramUsername = new URL(instagramLink).getPath().replace("/","");
-        vb.createStoreInstagram.getEditText().setText(instagramUsername);
-        }
-        catch (Exception e){
-            Log.e("Exception",e.getMessage());
+            String instagramLink = storeData.getInstagramUrl();
+            String instagramUsername = new URL(instagramLink).getPath().replace("/", "");
+            vb.createStoreInstagram.getEditText().setText(instagramUsername);
+        } catch (Exception e) {
+            Log.e("Exception", e.getMessage());
         }
 
         latitude = storeData.getLatitude();
@@ -588,69 +592,102 @@ public class CreateStoreFragment extends Fragment {
 
     void getAddressByGPS() {
 
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             locationPermission.launch(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
             return;
         }
 
-        if (locationManager.isProviderEnabled(locationProvider)) {
+        if (!locationManager.isProviderEnabled(locationProvider))
+            enableLocation();
 
-            vb.createStoreLoadingAddress.setVisibility(View.VISIBLE);
-            vb.createStoreFindLocation.setEnabled(false);
+        vb.createStoreLoadingAddress.setVisibility(View.VISIBLE);
+        vb.createStoreFindLocation.setEnabled(false);
 
-            locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    vb.createStoreLoadingAddress.setVisibility(View.GONE);
-                    vb.createStoreFindLocation.setEnabled(true);
+        // by documents it recommended 1 to 5
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                vb.createStoreLoadingAddress.setVisibility(View.GONE);
+                vb.createStoreFindLocation.setEnabled(true);
 
-                    gpsLocationDetected = true;
+                gpsLocationDetected = true;
 
-                    latitude = location.getLatitude();
-                    longitude = location.getLongitude();
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
 
-                    Geocoder geocoder = new Geocoder(getContext(), Locale.forLanguageTag("EN"));
+                Geocoder geocoder = new Geocoder(getContext(), Locale.forLanguageTag("EN"));
 
-                    ExecutorService executorService = Executors.newSingleThreadExecutor();
-                    executorService.execute(() -> {
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.execute(() -> {
 
-                        List<Address> addresses = null;
+                    List<Address> addresses = null;
 
-                        try {
-                            addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // by documents it recommended 1 to 5
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    try {
+                        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // by documents it recommended 1 to 5
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (addresses != null) {
+                        var address = addresses.get(0);
+
+                        String postalCode = address.getPostalCode();
+                        String city = address.getLocality();
+                        String city2 = address.getAdminArea();
+                        String city3 = address.getSubAdminArea();
+                        String state = address.getAdminArea();
+                        String countryCode = address.getCountryCode();
+                        String country = address.getCountryName();
+                        String street = address.getThoroughfare();
+                        String streetNum = address.getSubThoroughfare();
+
+                        StringBuilder sb = new StringBuilder();
+                        if (streetNum != null && !streetNum.isEmpty()) {
+                            sb.append(streetNum).append(" ");
                         }
-
-                        if (addresses != null) {
-                            String city = addresses.get(0).getLocality();
-                            String state = addresses.get(0).getAdminArea();
-                            String country = addresses.get(0).getCountryName();
-                            String street = addresses.get(0).getThoroughfare();
-
-                            if(street==null) street = "";
-
-                            String address = city+", "+state+", "+street;
-
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                vb.createStoreAddress.getEditText().setText(address);
-                            });
+                        if (street != null && !street.isEmpty()) {
+                            sb.append(street);
                         }
+                        if (city != null && !city.isEmpty()) {
+                            sb.append(", ").append(city);
+                        } else if (city2 != null && !city2.isEmpty()) {
+                            sb.append(", ").append(city2);
+                        } else if (city3 != null && !city3.isEmpty()) {
+                            sb.append(", ").append(city3);
+                        }
+                        if (state != null && !state.isEmpty()) {
+                            sb.append(", ").append(state);
+                        }
+                        if (country != null && !country.isEmpty()) {
+                            sb.append(", ").append(country);
+                        }
+                        if (postalCode != null && !postalCode.isEmpty()) {
+                            sb.append(" - ").append(postalCode);
+                        }
+                        if (countryCode != null && !countryCode.isEmpty()) {
+                            sb.append(" (").append(countryCode).append(")");
+                        }
+                        String addressText = sb.toString();
 
-                    });
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            assert vb.createStoreAddress.getEditText() != null;
+                            vb.createStoreAddress.getEditText().setText(addressText);
+                        });
+                    }
 
-                    locationManager.removeUpdates(this);
-                }
-            };
+                });
 
-            //choosing which provider depending on accuracy
-            if (locationManager.getProvider(LocationManager.GPS_PROVIDER).getAccuracy() < locationManager.getProvider(LocationManager.NETWORK_PROVIDER).getAccuracy())
-                locationProvider = LocationManager.NETWORK_PROVIDER;
-            else locationProvider = LocationManager.GPS_PROVIDER;
+                locationManager.removeUpdates(this);
+            }
+        };
 
-            locationManager.requestLocationUpdates(locationProvider, 5000, 0, locationListener);
+        //choosing which provider depending on accuracy
+        if (locationManager.getProvider(LocationManager.GPS_PROVIDER).getAccuracy() < locationManager.getProvider(LocationManager.NETWORK_PROVIDER).getAccuracy())
+            locationProvider = LocationManager.NETWORK_PROVIDER;
+        else locationProvider = LocationManager.GPS_PROVIDER;
 
-        } else enableLocation();
+        locationManager.requestLocationUpdates(locationProvider, 5000, 0, locationListener);
     }
 
     public void enableLocation() {

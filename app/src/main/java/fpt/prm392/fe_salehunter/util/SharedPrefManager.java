@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.gson.Gson;
 
-import fpt.prm392.fe_salehunter.model.UserModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 
 public class SharedPrefManager {
     private static SharedPrefManager instance;

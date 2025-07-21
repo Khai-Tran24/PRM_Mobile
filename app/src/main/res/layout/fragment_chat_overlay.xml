@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/chat_background"
+    android:id="@+id/chat_overlay_container">
+
+    <!-- Semi-transparent background -->
+    <View
+        android:id="@+id/chat_overlay_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <!-- Chat modal dialog -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/chat_modal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="center"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/chat_surface">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:maxHeight="500dp">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp"
+                android:background="@color/chat_primary">
+
+                <ImageButton
+                    android:id="@+id/btn_new_conversation"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_add"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="New conversation"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="SaleHunter AI Assistant"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btn_close_chat"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_close"
+                    android:contentDescription="Close chat"
+                    app:tint="@color/white" />
+
+            </LinearLayout>
+
+            <!-- Messages RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_chat_messages"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="200dp"
+                android:maxHeight="300dp"
+                android:padding="8dp"
+                android:background="@color/chat_surface"
+                android:scrollbars="vertical" />
+
+            <!-- Loading indicator -->
+            <ProgressBar
+                android:id="@+id/pb_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="16dp"
+                android:indeterminateTint="@color/chat_primary"
+                android:visibility="gone" />
+
+            <!-- Input area -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:gravity="center_vertical"
+                android:background="@color/chat_card_background">
+
+                <EditText
+                    android:id="@+id/et_message_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Type your message..."
+                    android:textColor="@color/chat_text_primary"
+                    android:textColorHint="@color/chat_text_secondary"
+                    android:background="@drawable/edittext_rounded_background"
+                    android:padding="12dp"
+                    android:maxLines="4"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageButton
+                    android:id="@+id/btn_send_message"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/button_circular_primary"
+                    android:src="@drawable/ic_send"
+                    android:contentDescription="@string/send_message_description"
+                    app:tint="@color/white" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>

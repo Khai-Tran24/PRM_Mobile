@@ -18,31 +18,28 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.appbar.AppBarLayout;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsCardAdapter;
-import fpt.prm392.fe_salehunter.databinding.FragmentProductPageBinding;
 import fpt.prm392.fe_salehunter.databinding.FragmentStorePageBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
-import fpt.prm392.fe_salehunter.model.StoreModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
-import fpt.prm392.fe_salehunter.util.DialogsProvider;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
+import fpt.prm392.fe_salehunter.model.store.StoreModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.StorePageViewModel;
+import fpt.prm392.fe_salehunter.helper.StorePageDataHelper;
+import fpt.prm392.fe_salehunter.helper.StorePageUIHelper;
 
 public class StorePageFragment extends Fragment {
     private FragmentStorePageBinding vb;
     private StorePageViewModel viewModel;
     private NavController navController;
-
     private ProductsCardAdapter adapter;
     private boolean endOfProducts = false;
-
     private int toolbarOffset = -1000;
 
     public StorePageFragment() {
@@ -56,9 +53,9 @@ public class StorePageFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if(vb==null) vb = FragmentStorePageBinding.inflate(inflater,container,false);
+        if (vb == null) vb = FragmentStorePageBinding.inflate(inflater, container, false);
         return vb.getRoot();
     }
 
@@ -71,258 +68,82 @@ public class StorePageFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ((MainActivity) getActivity()).setTitle(getString(R.string.Store));
+        ((MainActivity) requireActivity()).setTitle(getString(R.string.Store));
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(viewModel!=null) return;
+        if (viewModel != null) return;
 
         viewModel = new ViewModelProvider(this).get(StorePageViewModel.class);
         if (getArguments() != null) viewModel.setStoreId(getArguments().getLong("storeId"));
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
+        new Handler().post(() -> {
+            navController = ((MainActivity) getActivity()).getAppNavController();
         });
 
-        vb.storePageAppbar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            @Override
-            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+        setupAppBarAnimation();
+        setupRecyclerView();
+        loadStoreData();
+    }
 
-              if(verticalOffset > toolbarOffset){
-                  vb.storePageExpandedLabelToolbar.animate().alpha(1.0f).setDuration(150).withStartAction(()->{
-                      vb.storePageExpandedLabelToolbar.setVisibility(View.VISIBLE);
-                  }).start();
-
-              }
-              else if(verticalOffset < toolbarOffset){
-                  vb.storePageExpandedLabelToolbar.animate().alpha(0).setDuration(150).withEndAction(()->{
-                      vb.storePageExpandedLabelToolbar.setVisibility(View.GONE);
-                  }).start();
-              }
+    private void setupAppBarAnimation() {
+        vb.storePageAppbar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+            if (verticalOffset > toolbarOffset) {
+                vb.storePageExpandedLabelToolbar.animate().alpha(1.0f).setDuration(150).withStartAction(() -> {
+                    vb.storePageExpandedLabelToolbar.setVisibility(View.VISIBLE);
+                }).start();
+            } else if (verticalOffset < toolbarOffset) {
+                vb.storePageExpandedLabelToolbar.animate().alpha(0).setDuration(150).withEndAction(() -> {
+                    vb.storePageExpandedLabelToolbar.setVisibility(View.GONE);
+                }).start();
             }
         });
+    }
 
-        adapter = new ProductsCardAdapter(getContext(),vb.storePageRecyclerView);
-        vb.storePageRecyclerView.setLayoutManager(new GridLayoutManager(getContext(),2));
+    private void setupRecyclerView() {
+        adapter = new ProductsCardAdapter(getContext(), vb.storePageRecyclerView);
+        vb.storePageRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         vb.storePageRecyclerView.setAdapter(adapter);
 
         adapter.setItemInteractionListener(new ProductsCardAdapter.ItemInteractionListener() {
             @Override
             public void onProductClicked(long productId, String storeType) {
                 Bundle bundle = new Bundle();
-                bundle.putLong("productId",productId);
-                navController.navigate(R.id.action_storePageFragment_to_productPageFragment,bundle);
+                bundle.putLong("productId", productId);
+                navController.navigate(R.id.action_storePageFragment_to_productPageFragment, bundle);
             }
 
             @Override
             public void onProductAddedToFav(long productId, boolean favChecked) {
-                setFavourite(productId,favChecked);
+                StorePageDataHelper.setFavourite(getContext(), productId, favChecked, getViewLifecycleOwner());
             }
         });
 
-        adapter.setLastItemReachedListener(new ProductsCardAdapter.LastItemReachedListener() {
-            @Override
-            public void onLastItemReached() {
-                loadMoreProducts();
-            }
-        });
-
-        loadStoreData();
+        adapter.setLastItemReachedListener(this::loadMoreProducts);
     }
 
-    void loadStoreData(){
+    void loadStoreData() {
         vb.storePageLoadingPage.setVisibility(View.VISIBLE);
 
-        viewModel.getStore().observe(getViewLifecycleOwner(), response ->{
-
-            switch (response.code()){
-                case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    if(response.body()!=null){
-                        viewModel.setStorePageModel(response.body());
-                        renderStoreData();
-                        renderInitialProducts();
-                        vb.storePageLoadingPage.setVisibility(View.GONE);
-
-                    }
-                    break;
-
-                case BaseResponseModel.FAILED_NOT_FOUND:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Store_Not_Found), getString(R.string.Store_Not_Found_in_Server));
-                    break;
-
-                case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    Toast.makeText(getContext(), "Loading Failed", Toast.LENGTH_SHORT).show();
-                    break;
-
-                default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
-            }
-
-            viewModel.removeObserverStoreData(getViewLifecycleOwner());
-        });
-
-    }
-
-    void renderStoreData(){
-        StoreModel storeModel = viewModel.getStorePageModel().getStore();
-
-        vb.storePageStoreName.setText(storeModel.getName());
-        vb.storePageStoreNameToolbar.setText(storeModel.getName());
-
-        if(storeModel.getType().equals("online")){
-
-            Glide.with(this)
-                    .load(storeModel.getLogoUrl())
-                    .fitCenter()
-                    .placeholder(R.drawable.store_placeholder)
-                    .into(vb.storePageLogo);
-
-            Glide.with(this)
-                    .load(storeModel.getLogoUrl())
-                    .fitCenter()
-                    .placeholder(R.drawable.store_placeholder)
-                    .into(vb.storePageLogoToolbar);
-
-            vb.storePageStoreCategory.setText(R.string.Online_Ecommerce);
-            vb.storePageStoreCategoryToolbar.setText(R.string.Online_Ecommerce);
-
-            vb.storePageStoreLocation.setVisibility(View.GONE);
-            vb.storePageStorePhone.setVisibility(View.GONE);
-
-            toolbarOffset = -500;
-        }
-        else{
-
-            Glide.with(this)
-                    .load(storeModel.getLogoUrl())
-                    .placeholder(R.drawable.store_placeholder)
-                    .circleCrop()
-                    .into(vb.storePageLogo);
-
-            Glide.with(this)
-                    .load(storeModel.getLogoUrl())
-                    .placeholder(R.drawable.store_placeholder)
-                    .circleCrop()
-                    .into(vb.storePageLogoToolbar);
-
-            vb.storePageStoreCategory.setText(storeModel.getCategory());
-            vb.storePageStoreCategoryToolbar.setText(storeModel.getCategory());
-
-            if(storeModel.getAddress() == null) vb.storePageStoreWebsite.setVisibility(View.GONE);
-            else{
-                vb.storePageStoreLocation.setText(storeModel.getAddress());
-                vb.storePageStoreLocation.setOnClickListener(button ->{
-                    Toast.makeText(getContext(), vb.storePageStoreLocation.getText(), Toast.LENGTH_LONG).show();
-                });
-            }
-
-            if(storeModel.getPhone() == null) vb.storePageStoreWebsite.setVisibility(View.GONE);
-            else{
-                vb.storePageStorePhone.setText(storeModel.getPhone());
-                vb.storePageStorePhone.setOnClickListener(button ->{
-                    Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", vb.storePageStorePhone.getText().toString(), null));
-                    startActivity(intent);
-                });
-            }
-
-        }
-
-        vb.storePageStoreDescription.setText(storeModel.getDescription());
-
-        if(storeModel.getWebsiteUrl() == null) vb.storePageStoreWebsite.setVisibility(View.GONE);
-        else{
-            vb.storePageStoreWebsite.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getWebsiteUrl()));
-                startActivity(intent);
-            });
-        }
-
-        if(storeModel.getWhatsappPhone() == null) vb.storePageStoreWhatsapp.setVisibility(View.GONE);
-        else{
-            vb.storePageStoreWhatsapp.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://api.whatsapp.com/send?phone=+20"+storeModel.getWhatsappPhone()));
-                startActivity(intent);
-            });
-        }
-
-        if(storeModel.getFacebookUrl() == null) vb.storePageStoreFacebook.setVisibility(View.GONE);
-        else{
-            vb.storePageStoreFacebook.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getFacebookUrl().replace(".com/",".com/n/?")));
-                startActivity(intent);
-            });
-        }
-
-        if(storeModel.getInstagramUrl() == null) vb.storePageStoreInstagram.setVisibility(View.GONE);
-        else{
-            vb.storePageStoreInstagram.setOnClickListener(button ->{
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(storeModel.getInstagramUrl()));
-                startActivity(intent);
-            });
-        }
-
-    }
-
-    void renderInitialProducts(){
-        ArrayList<ProductModel> products = viewModel.getStorePageModel().getProducts();
-        if(products.size()==0){
-            endOfProducts = true;
-            vb.storePageNoProducts.setVisibility(View.VISIBLE);
-
-            // Add null safety check for user
-            UserModel currentUser = UserAccountManager.getUser(getContext());
-            if(currentUser != null && viewModel.getStoreId() == currentUser.getStoreId()){
-                vb.storePageNoProductsTitle.setText(R.string.You_dont_have_products);
-            }
-        }
-        else adapter.addProducts(products);
-    }
-
-    void loadMoreProducts(){
-        if(endOfProducts) return;
-
-        adapter.setLoading(true);
-
-        viewModel.getNextPage().observe(getViewLifecycleOwner(),  response ->{
-
-            switch (response.code()){
-                case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    adapter.setLoading(false);
-
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
-                        endOfProducts = true;
-                        return;
-                    }
-
-                    viewModel.removeObserverStoreData(getViewLifecycleOwner());
-                    adapter.addProducts(response.body().getProducts());
-                    break;
-
-                case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    Toast.makeText(getContext(), "Loading Failed", Toast.LENGTH_SHORT).show();
-                    break;
-
-                default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
-            }
+        StorePageDataHelper.loadStoreData(getContext(), getViewLifecycleOwner(), viewModel, vb, () -> {
+            StorePageUIHelper.renderStoreData(getContext(), viewModel, vb);
+            vb.storePageLoadingPage.setVisibility(View.GONE);
+            toolbarOffset = StorePageUIHelper.renderStoreData(getContext(), viewModel, vb);
+            
+            // Load products using search API
+            boolean[] endOfProductsArray = {false};
+            StorePageDataHelper.renderInitialProducts(getContext(), getViewLifecycleOwner(), viewModel, adapter, vb, endOfProductsArray);
+            endOfProducts = endOfProductsArray[0];
         });
     }
 
-    void setFavourite(long productId, boolean favourite){
-        if(favourite){
-            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response ->{
-                if (response.code() != BaseResponseModel.SUCCESSFUL_CREATION)
-                    Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
-            });
-        }
-        else {
-            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response ->{
-                if (response.code() != BaseResponseModel.SUCCESSFUL_DELETED)
-                    Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
-            });
-        }
+    void loadMoreProducts() {
+        if (endOfProducts) return;
 
+        boolean[] endOfProductsArray = {endOfProducts};
+        StorePageDataHelper.loadMoreProducts(getContext(), getViewLifecycleOwner(), viewModel, adapter, endOfProductsArray);
+        endOfProducts = endOfProductsArray[0];
     }
 }

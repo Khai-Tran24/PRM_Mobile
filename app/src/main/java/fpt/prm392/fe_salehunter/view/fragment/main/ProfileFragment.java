@@ -30,8 +30,8 @@ import com.bumptech.glide.request.RequestOptions;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.databinding.FragmentProfileBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.ImageEncoder;
 import fpt.prm392.fe_salehunter.util.TextFieldValidator;
@@ -308,7 +308,7 @@ public class ProfileFragment extends Fragment {
 
             switch (response.code()){
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    user = response.body().getUser();
+                    user = response.body().getData();
                     UserAccountManager.updateUser(getContext(),user);
 
                     renderProfileData();

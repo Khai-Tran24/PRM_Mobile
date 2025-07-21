@@ -17,7 +17,7 @@ import android.view.animation.AnimationUtils;
 
 import fpt.prm392.fe_salehunter.data.Repository;
 import fpt.prm392.fe_salehunter.databinding.FragmentSignUpBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.TextFieldValidator;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
@@ -222,13 +222,13 @@ public class SignUpFragment extends Fragment {
                     intent.putExtra(MainActivity.JUST_SIGNED_IN,true);
 
                     // Add null safety check for response body and extract accessToken correctly
-                    if (response.body() != null && response.body().getData() != null && 
-                        response.body().getData().getUser() != null && 
-                        response.body().getData().getAccessToken() != null) {
+                    if (response.body() != null &&
+                        response.body().getUser() != null &&
+                        response.body().getAccessToken() != null) {
                         UserAccountManager.signInWithTokens(getActivity(), intent, 
-                                response.body().getData().getAccessToken(), 
-                                response.body().getData().getRefreshToken(), 
-                                response.body().getData().getUser());
+                                response.body().getAccessToken(),
+                                response.body().getRefreshToken(),
+                                response.body().getUser());
                     }
                     break;
 

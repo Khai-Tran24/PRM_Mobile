@@ -18,7 +18,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.databinding.FragmentPasswordChangeDialogBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.TextFieldValidator;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
@@ -42,7 +42,7 @@ public class PasswordChangeDialog extends BottomSheetDialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         vb = FragmentPasswordChangeDialogBinding.inflate(inflater, container, false);
         return vb.getRoot();

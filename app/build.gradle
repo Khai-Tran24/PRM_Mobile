@@ -14,6 +14,18 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        def localProperties = new Properties()
+        def localPropertiesFile = rootProject.file('local.properties')
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.withReader('UTF-8') { reader ->
+                localProperties.load(reader)
+            }
+        }
+
+        def mapsApiKey = localProperties.getProperty('MAPS_API_KEY') ?: "your_api_key_here"
+        buildConfigField("String", "MAPS_API_KEY", "\"${mapsApiKey}\"")
+
     }
 
     buildTypes {
@@ -43,6 +55,7 @@ android {
 
 //apply plugin: 'com.android.application' //for google auth
 
+
 dependencies {
 
     implementation libs.appcompat
@@ -68,6 +81,7 @@ dependencies {
 
     // RxJava
     implementation libs.rxjava
+    implementation libs.rxandroid
 
     //Navigation Component
     implementation libs.navigation.fragment
@@ -82,6 +96,7 @@ dependencies {
 
     //Retrofit
     implementation libs.retrofit
+    implementation libs.logging.interceptor
     implementation libs.converter.gson //Json Factory Converter GSON
     implementation libs.adapter.rxjava2 //RxJava Factory Converter
 
@@ -97,27 +112,27 @@ dependencies {
     implementation libs.barcode.scanning
 
     //CameraX dependencies:
-    def camerax_version = "1.4.2"
-    implementation "androidx.camera:camera-core:${camerax_version}"
-    implementation "androidx.camera:camera-camera2:${camerax_version}"
-    // If you want to additionally use the CameraX Lifecycle library
-    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
-    // If you want to additionally use the CameraX VideoCapture library
-    implementation "androidx.camera:camera-video:${camerax_version}"
-    // If you want to additionally use the CameraX View class
-    implementation "androidx.camera:camera-view:${camerax_version}"
-    // If you want to additionally add CameraX ML Kit Vision Integration
-    implementation "androidx.camera:camera-mlkit-vision:${camerax_version}"
-    // If you want to additionally use the CameraX Extensions library
-    implementation "androidx.camera:camera-extensions:${camerax_version}"
+    implementation libs.androidx.camera.core
+    implementation libs.androidx.camera.camera2
+    implementation libs.androidx.camera.lifecycle
+    implementation libs.androidx.camera.video
+    implementation libs.androidx.camera.view
+    implementation libs.androidx.camera.mlkit.vision
+    implementation libs.androidx.camera.extensions
 
-    //Google Maps
-    implementation libs.play.services.maps
-    implementation libs.play.services.location
+    //MapLibre Native for OpenStreetMap (replacing Google Maps)
+    implementation libs.maplibre.native
+    implementation libs.play.services.location // Keep for location services
 
     //Hello Charts
     implementation libs.hellocharts.library
 
     //ViewPager2
     implementation libs.androidx.viewpager2
+
+    // Lombok
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+    testCompileOnly libs.lombok
+    testAnnotationProcessor libs.lombok
 }

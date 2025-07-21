@@ -10,7 +10,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 
 import fpt.prm392.fe_salehunter.R;
-import fpt.prm392.fe_salehunter.model.UserModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 import fpt.prm392.fe_salehunter.view.activity.AccountSign;
 
 public final class UserAccountManager {

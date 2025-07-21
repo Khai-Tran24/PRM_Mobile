@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.text.LocaleKt;
 
 import java.util.Locale;
@@ -16,23 +18,22 @@ import java.util.Locale;
 import fpt.prm392.fe_salehunter.R;
 
 public class UnderlayNavigationDrawer {
-    private View overLayView;
-    private View overLayInnerView;
-    private View menuView;
-    private GradientDrawable overLayViewBackground;
-    private ImageButton menuButton;
+    private final View overLayView;
+    private final View overLayInnerView;
+    private final View menuView;
+    private final GradientDrawable overLayViewBackground;
+    private final ImageButton menuButton;
     private boolean active = false;
     private boolean inTouchRange = false;
-    private Activity activity;
-    private int screenWidth;
+    private final Activity activity;
 
-    private int menuHandleWidth;
-    private float scaleFactor;
-    private float cornersRadiusRatio;
-    private float threshHold;
-    private int animationSpeed;
+    private final int menuHandleWidth;
+    private final float scaleFactor;
+    private final float cornersRadiusRatio;
+    private final float threshHold;
+    private final int animationSpeed;
 
-    private boolean rtl;
+    private final boolean rtl;
 
     private MenuOpenCloseListener menuOpenCloseListener = null;
 
@@ -80,7 +81,7 @@ public class UnderlayNavigationDrawer {
     }
 
     public void detectTouch(MotionEvent event) {
-        screenWidth = activity.getWindow().getDecorView().getWidth();
+        int screenWidth = activity.getWindow().getDecorView().getWidth();
 
         float touchX;
         if (rtl) touchX = screenWidth - event.getX();
@@ -120,22 +121,22 @@ public class UnderlayNavigationDrawer {
     public void openMenu() {
         overLayView.animate().scaleX(1 - scaleFactor).scaleY(1 - scaleFactor).setDuration(animationSpeed).setInterpolator(new DecelerateInterpolator()).setListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animator) {
+            public void onAnimationStart(@NonNull Animator animator) {
                 menuView.setVisibility(View.VISIBLE);
             }
 
             @Override
-            public void onAnimationEnd(Animator animator) {
+            public void onAnimationEnd(@NonNull Animator animator) {
                 if (menuOpenCloseListener != null) menuOpenCloseListener.onMenuOpened();
             }
 
             @Override
-            public void onAnimationCancel(Animator animator) {
+            public void onAnimationCancel(@NonNull Animator animator) {
 
             }
 
             @Override
-            public void onAnimationRepeat(Animator animator) {
+            public void onAnimationRepeat(@NonNull Animator animator) {
 
             }
         }).start();
@@ -158,7 +159,9 @@ public class UnderlayNavigationDrawer {
         overLayInnerView.animate().scaleX((1 - scaleFactor) * 0.99f).scaleY((1 - scaleFactor) * 0.99f).setDuration(animationSpeed).setInterpolator(new DecelerateInterpolator()).start();
 
         if (menuButton != null) {
-            menuButton.setImageDrawable(activity.getResources().getDrawable(R.drawable.menu_close, activity.getTheme()));
+            menuButton.setImageDrawable(
+                    ResourcesCompat.getDrawable(activity.getResources(), R.drawable.menu_close, activity.getTheme())
+            );
             menuButton.animate().rotation(-180).setDuration(animationSpeed).setInterpolator(new DecelerateInterpolator()).start();
         }
 
@@ -167,23 +170,23 @@ public class UnderlayNavigationDrawer {
     public void closeMenu() {
         overLayView.animate().translationX(0).setDuration(animationSpeed).setInterpolator(new DecelerateInterpolator()).setListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animator) {
+            public void onAnimationStart(@NonNull Animator animator) {
 
             }
 
             @Override
-            public void onAnimationEnd(Animator animator) {
+            public void onAnimationEnd(@NonNull Animator animator) {
                 menuView.setVisibility(View.GONE);
                 if (menuOpenCloseListener != null) menuOpenCloseListener.onMenuClosed();
             }
 
             @Override
-            public void onAnimationCancel(Animator animator) {
+            public void onAnimationCancel(@NonNull Animator animator) {
 
             }
 
             @Override
-            public void onAnimationRepeat(Animator animator) {
+            public void onAnimationRepeat(@NonNull Animator animator) {
 
             }
         }).start();
@@ -196,7 +199,9 @@ public class UnderlayNavigationDrawer {
         overLayInnerView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(animationSpeed).setInterpolator(new DecelerateInterpolator()).start();
 
         if (menuButton != null) {
-            menuButton.setImageDrawable(activity.getResources().getDrawable(R.drawable.menu_default, activity.getTheme()));
+            menuButton.setImageDrawable(
+                    ResourcesCompat.getDrawable(activity.getResources(), R.drawable.menu_close, activity.getTheme())
+            );
             menuButton.animate().rotation(0).setDuration(animationSpeed).setInterpolator(new DecelerateInterpolator()).start();
         }
 

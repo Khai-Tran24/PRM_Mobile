@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import fpt.prm392.fe_salehunter.R;
-import fpt.prm392.fe_salehunter.model.ProductModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.util.AppSettingsManager;
 
 public class ProductsSearchResultsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
@@ -63,6 +63,25 @@ public class ProductsSearchResultsAdapter extends RecyclerView.Adapter<RecyclerV
 
     public void setItemInteractionListener(ItemInteractionListener itemInteractionListener){
         this.itemInteractionListener = itemInteractionListener;
+    }
+
+    /**
+     * Get all products currently in the adapter (for map markers)
+     */
+    public ArrayList<ProductModel> getProducts() {
+        ArrayList<ProductModel> products = new ArrayList<>();
+        for (ProductModel item : Data) {
+            // Filter out special layout objects and only include actual products
+            if (item != loadingLayoutObject && 
+                item != onlineLabelLayoutObject && 
+                item != localLabelLayoutObject && 
+                item != horizontalProductsLayoutObject && 
+                item != noResultItemObject &&
+                item.getId() != 0) { // Assuming products have non-zero IDs
+                products.add(item);
+            }
+        }
+        return products;
     }
 
     public ProductsSearchResultsAdapter(Context context, RecyclerView recyclerView){

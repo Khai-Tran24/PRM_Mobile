@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 
 import fpt.prm392.fe_salehunter.databinding.FragmentForgotPasswordBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.util.TextFieldValidator;
 import fpt.prm392.fe_salehunter.view.activity.AccountSign;

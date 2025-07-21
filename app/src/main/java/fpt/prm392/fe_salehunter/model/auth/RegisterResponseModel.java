@@ -1,70 +1,61 @@
 package fpt.prm392.fe_salehunter.model.auth;
 
 import com.google.gson.annotations.SerializedName;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
 
-public class RegisterResponseModel extends BaseResponseModel {
-    // Remove duplicate fields that are already in BaseResponseModel
-    // BaseResponseModel already has: code, message, isSuccess
+// FIXED: Remove double wrapping - backend sends BaseResponseDto<RegisterResponseDto>
+// Mobile should expect the RegisterResponseDto directly, not wrapped in another BaseResponseModel
+public class RegisterResponseModel {
+    @SerializedName("accessToken")
+    private String accessToken;
 
-    @SerializedName("data")
-    private RegisterData data;
+    @SerializedName("refreshToken")
+    private String refreshToken;
 
-    public static class RegisterData {
-        @SerializedName("accessToken")
-        private String accessToken;
+    @SerializedName("expiresAt")
+    private String expiresAt; // Backend sends DateTime but mobile expects String
 
-        @SerializedName("refreshToken")
-        private String refreshToken;
+    @SerializedName("user")
+    private UserModel user;
 
-        @SerializedName("expiresAt")
-        private String expiresAt;
+    public RegisterResponseModel() {}
 
-        @SerializedName("user")
-        private UserModel user;
-
-        public String getAccessToken() {
-            return accessToken;
-        }
-
-        public void setAccessToken(String accessToken) {
-            this.accessToken = accessToken;
-        }
-
-        public String getRefreshToken() {
-            return refreshToken;
-        }
-
-        public void setRefreshToken(String refreshToken) {
-            this.refreshToken = refreshToken;
-        }
-
-        public String getExpiresAt() {
-            return expiresAt;
-        }
-
-        public void setExpiresAt(String expiresAt) {
-            this.expiresAt = expiresAt;
-        }
-
-        public UserModel getUser() {
-            return user;
-        }
-
-        public void setUser(UserModel user) {
-            this.user = user;
-        }
+    public RegisterResponseModel(String accessToken, String refreshToken, String expiresAt, UserModel user) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.expiresAt = expiresAt;
+        this.user = user;
     }
 
-    // Remove duplicate getters/setters that are already in BaseResponseModel
-    // BaseResponseModel already provides: getCode(), setCode(), getMessage(), setMessage(), isSuccess(), setSuccess()
-
-    public RegisterData getData() {
-        return data;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setData(RegisterData data) {
-        this.data = data;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public String getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(String expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public UserModel getUser() {
+        return user;
+    }
+
+    public void setUser(UserModel user) {
+        this.user = user;
     }
 }

@@ -19,10 +19,9 @@ import java.util.ArrayList;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsListAdapter;
-import fpt.prm392.fe_salehunter.databinding.FragmentFavBinding;
 import fpt.prm392.fe_salehunter.databinding.FragmentOnSaleBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.home.OnSaleViewModel;
@@ -48,7 +47,7 @@ public class OnSaleFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        if(vb==null) vb = FragmentOnSaleBinding.inflate(inflater,container,false);
+        if (vb == null) vb = FragmentOnSaleBinding.inflate(inflater, container, false);
         return vb.getRoot();
     }
 
@@ -62,12 +61,12 @@ public class OnSaleFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
+        new Handler().post(() -> {
+            navController = ((MainActivity) getActivity()).getAppNavController();
         });
         viewModel = new ViewModelProvider(this).get(OnSaleViewModel.class);
 
-        adapter = new ProductsListAdapter(getContext(),vb.onSaleRecyclerVeiw);
+        adapter = new ProductsListAdapter(getContext(), vb.onSaleRecyclerVeiw);
         vb.onSaleRecyclerVeiw.setLayoutManager(new LinearLayoutManager(getContext()));
         vb.onSaleRecyclerVeiw.setAdapter(adapter);
 
@@ -75,34 +74,34 @@ public class OnSaleFragment extends Fragment {
             @Override
             public void onProductClicked(ProductModel product) {
                 Bundle bundle = new Bundle();
-                bundle.putLong("productId",product.getId());
-                navController.navigate(R.id.action_homeFragment_to_productPageFragment,bundle);
+                bundle.putLong("productId", product.getId());
+                navController.navigate(R.id.action_homeFragment_to_productPageFragment, bundle);
             }
 
             @Override
             public void onProductAddedToFav(long productId, boolean favChecked) {
-                setFavourite(productId,favChecked);
+                setFavourite(productId, favChecked);
             }
         });
 
         loadProducts();
     }
 
-    void loadProducts(){
+    void loadProducts() {
         vb.onSaleLoading.setVisibility(View.VISIBLE);
 
-        viewModel.getOnSaleProducts().observe(getViewLifecycleOwner(),  response ->{
+        viewModel.getOnSaleProducts().observe(getViewLifecycleOwner(), response -> {
 
-            switch (response.code()){
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
                     vb.onSaleLoading.setVisibility(View.GONE);
 
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
-                        DialogsProvider.get(getActivity()).messageDialog(getString(R.string.There_are_no_products_on_sale),getString(R.string.Check_this_page_later));
+                    if (response.body().getData() == null || response.body().getData().isEmpty()) {
+                        DialogsProvider.get(getActivity()).messageDialog(getString(R.string.There_are_no_products_on_sale), getString(R.string.Check_this_page_later));
                         return;
                     }
 
-                    ArrayList<ProductModel> products = response.body().getProducts();
+                    ArrayList<ProductModel> products = response.body().getData();
 
                     adapter.addProducts(products);
 
@@ -114,21 +113,20 @@ public class OnSaleFragment extends Fragment {
                     break;
 
                 default:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error),getString(R.string.Code)+ response.code());
+                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error), getString(R.string.Code) + response.code());
             }
         });
 
     }
 
-    void setFavourite(long productId, boolean favourite){
-        if(favourite){
-            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response ->{
+    void setFavourite(long productId, boolean favourite) {
+        if (favourite) {
+            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_CREATION)
                     Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
             });
-        }
-        else {
-            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response ->{
+        } else {
+            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_DELETED)
                     Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
             });

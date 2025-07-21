@@ -7,11 +7,12 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import fpt.prm392.fe_salehunter.data.Repository;
-import fpt.prm392.fe_salehunter.model.UserResponseModel;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import retrofit2.Response;
 
 public class MainActivityViewModel extends AndroidViewModel {
-    private Repository repository;
+    private final Repository repository;
 
     public MainActivityViewModel(@NonNull Application application) {
         super(application);
@@ -20,7 +21,7 @@ public class MainActivityViewModel extends AndroidViewModel {
 
     }
 
-    public LiveData<Response<UserResponseModel>> getUser(String token){
+    public LiveData<Response<BaseResponseModel<UserModel>>> getUser(String token){
         return repository.getUser(token);
     }
 }

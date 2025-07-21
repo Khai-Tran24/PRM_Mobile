@@ -1,7 +1,9 @@
 package fpt.prm392.fe_salehunter.adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,14 +20,14 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import fpt.prm392.fe_salehunter.model.ProductModel;
 import fpt.prm392.fe_salehunter.R;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.util.AppSettingsManager;
 
-public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
-    private ArrayList<ProductModel> Data;
-    private RecyclerView recyclerView;
-    private Context context;
+public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private final ArrayList<ProductModel> productData;
+    private final RecyclerView recyclerView;
+    private final Context context;
 
     private final ProductModel loadingCardObject = new ProductModel();
     private final ProductModel noResultCardObject = new ProductModel();
@@ -40,12 +42,18 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private boolean noResultsFound = false;
     private boolean hideFavButton = false;
 
+    public ProductsCardAdapter(Context context, RecyclerView recyclerView) {
+        this.context = context;
+        this.recyclerView = recyclerView;
+        this.productData = new ArrayList<>();
+    }
     public interface LastItemReachedListener {
         void onLastItemReached();
     }
 
     public interface ItemInteractionListener {
         void onProductClicked(long productId, String storeType);
+
         void onProductAddedToFav(long productId, boolean favChecked);
     }
 
@@ -53,14 +61,8 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.lastItemReachedListener = lastItemReachedListener;
     }
 
-    public void setItemInteractionListener(ItemInteractionListener itemInteractionListener){
+    public void setItemInteractionListener(ItemInteractionListener itemInteractionListener) {
         this.itemInteractionListener = itemInteractionListener;
-    }
-
-    public ProductsCardAdapter(Context context, RecyclerView recyclerView){
-        this.context = context;
-        this.recyclerView = recyclerView;
-        this.Data = new ArrayList<>();
     }
 
     //item view inner class
@@ -101,8 +103,8 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemViewType(int position) {
-        if(Data.get(position)==loadingCardObject) return TYPE_LOADING_VIEW_HOLDER;
-        else if(Data.get(position)==noResultCardObject) return TYPE_NO_RESULT_VIEW_HOLDER;
+        if (productData.get(position) == loadingCardObject) return TYPE_LOADING_VIEW_HOLDER;
+        else if (productData.get(position) == noResultCardObject) return TYPE_NO_RESULT_VIEW_HOLDER;
         else return TYPE_DATA_VIEW_HOLDER;
     }
 
@@ -110,11 +112,10 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        if(viewType == TYPE_LOADING_VIEW_HOLDER){
+        if (viewType == TYPE_LOADING_VIEW_HOLDER) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.product_card_loading_layout, parent, false);
             return new LoadingViewHolder(view);
-        }
-        else if(viewType == TYPE_NO_RESULT_VIEW_HOLDER){
+        } else if (viewType == TYPE_NO_RESULT_VIEW_HOLDER) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.product_card_no_results_layout, parent, false);
             return new NoResultViewHolder(view);
         }
@@ -127,37 +128,38 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
 
-        if(getItemViewType(position) == TYPE_DATA_VIEW_HOLDER) {
+        if (getItemViewType(position) == TYPE_DATA_VIEW_HOLDER) {
 
-            DataViewHolder holder = (DataViewHolder)  viewHolder;
+            DataViewHolder holder = (DataViewHolder) viewHolder;
 
-            holder.name.setText(Data.get(position).getName());
-            holder.brand.setText(Data.get(position).getBrand());
-            holder.price.setText(Data.get(position).getCurrentPrice()+ context.getString(R.string.currency));
-            holder.rate.setText(String.valueOf(Data.get(position).getAverageRating()));
-            holder.favourite.setChecked(Data.get(position).isFavorite());
-            holder.sale.setText(Data.get(position).getSalePercent()+context.getString(R.string.sale_percent));
+            holder.name.setText(productData.get(position).getName());
+            holder.brand.setText(productData.get(position).getBrand());
+            holder.price.setText(String.format(Locale.ENGLISH, "%.1f %s",productData.get(position).getCurrentPrice(), context.getString(R.string.currency)));
+            holder.rate.setText(String.valueOf(productData.get(position).getAverageRating()));
+            holder.favourite.setChecked(productData.get(position).isFavorite());
+            holder.sale.setText(String.format(Locale.ENGLISH, "%d%s", productData.get(position).getSalePercent(), context.getString(R.string.sale_percent)));
 
-            if(hideFavButton) holder.favourite.setVisibility(View.GONE);
-            if(Data.get(position).getSalePercent() == 0) holder.sale.setVisibility(View.GONE);
+            if (hideFavButton) holder.favourite.setVisibility(View.GONE);
+            if (productData.get(position).getSalePercent() == 0) holder.sale.setVisibility(View.GONE);
 
-            if(Data.get(position).getAverageRating()==0){
+            if (productData.get(position).getAverageRating() == 0) {
                 holder.rate.setVisibility(View.INVISIBLE);
                 holder.rateIcon.setVisibility(View.INVISIBLE);
             }
 
             //Store
-            //if(isDarkModeEnabled()) holder.store.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+            if(isDarkModeEnabled()) holder.store.setImageTintList(ColorStateList.valueOf(Color.WHITE));
 
-            if(Data.get(position).getStoreImageUrl()!=null)
-            Glide.with(context)
-                    .load(Data.get(position).getStoreImageUrl())
-                    .transition(DrawableTransitionOptions.withCrossFade(250))
-                    .into(holder.store);
+            if (productData.get(position).getStoreImageUrl() != null)
+                Glide.with(context)
+                        .load(productData.get(position).getStoreImageUrl())
+                        .centerCrop()
+                        .transition(DrawableTransitionOptions.withCrossFade(250))
+                        .into(holder.store);
 
             //Image
             Glide.with(context)
-                    .load(Data.get(position).getMainImage())
+                    .load(productData.get(position).getMainImage())
                     .centerCrop()
                     .transition(DrawableTransitionOptions.withCrossFade(250))
                     .into(holder.image);
@@ -165,15 +167,17 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(itemInteractionListener!=null) itemInteractionListener.onProductClicked(Data.get(holder.getAdapterPosition()).getId(), Data.get(holder.getAdapterPosition()).getStoreType());
+                    if (itemInteractionListener != null)
+                        itemInteractionListener.onProductClicked(productData.get(holder.getAdapterPosition()).getId(), productData.get(holder.getAdapterPosition()).getStoreType());
                 }
             });
 
             holder.favourite.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Data.get(holder.getAdapterPosition()).setFavorite(holder.favourite.isChecked());
-                    if(itemInteractionListener!=null) itemInteractionListener.onProductAddedToFav(Data.get(holder.getAdapterPosition()).getId(),holder.favourite.isChecked());
+                    productData.get(holder.getAdapterPosition()).setFavorite(holder.favourite.isChecked());
+                    if (itemInteractionListener != null)
+                        itemInteractionListener.onProductAddedToFav(productData.get(holder.getAdapterPosition()).getId(), holder.favourite.isChecked());
                 }
             });
 
@@ -184,67 +188,68 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
 
-        if(noResultsFound) return;
-        if(holder.getAdapterPosition() == Data.size()-1 && lastItemReachedListener!=null && !isLoading()) lastItemReachedListener.onLastItemReached();
+        if (noResultsFound) return;
+        if (holder.getAdapterPosition() == productData.size() - 1 && lastItemReachedListener != null && !isLoading())
+            lastItemReachedListener.onLastItemReached();
     }
 
     @Override
     public int getItemCount() {
-        return Data.size();
+        return productData.size();
     }
 
-    public void addProduct(ProductModel product){
-        if(noResultsFound) return;
+    public void addProduct(ProductModel product) {
+        if (noResultsFound) return;
 
-        recyclerView.post(()->{
-            Data.add(product);
+        recyclerView.post(() -> {
+            productData.add(product);
             notifyItemInserted(getItemCount());
         });
     }
 
     //NoPost for nested recyclerviews adapters
-    public void addProductNoPost(ProductModel product){
-        if(noResultsFound) return;
+    public void addProductNoPost(ProductModel product) {
+        if (noResultsFound) return;
 
-        Data.add(product);
+        productData.add(product);
         notifyItemInserted(getItemCount());
     }
 
-    public void addProducts(ArrayList<ProductModel> products){
-        if(noResultsFound) return;
+    public void addProducts(ArrayList<ProductModel> products) {
+        if (noResultsFound) return;
 
-        recyclerView.post(()->{
-            Data.addAll(products);
+        recyclerView.post(() -> {
+            productData.addAll(products);
             notifyItemRangeInserted(getItemCount(), products.size());
         });
     }
 
     //NoPost for nested recyclerviews adapters
-    public void addProductsNoPost(ArrayList<ProductModel> products){
-        if(noResultsFound) return;
+    public void addProductsNoPost(ArrayList<ProductModel> products) {
+        if (noResultsFound) return;
 
-        Data.addAll(products);
+        productData.addAll(products);
         notifyItemRangeInserted(getItemCount(), products.size());
     }
 
-    public void clearProducts(){
-        Data.clear();
+    public void clearProducts() {
+        productData.clear();
         notifyDataSetChanged();
     }
 
-    public boolean isLoading(){
-        return Data.contains(loadingCardObject);
+    public boolean isLoading() {
+        return productData.contains(loadingCardObject);
     }
 
-    public void setLoading(boolean loading){
-        recyclerView.post(()-> {
-            if(isLoading() == loading) return;
+    public void setLoading(boolean loading) {
+        recyclerView.post(() -> {
+            if (isLoading() == loading) return;
 
             if (loading) {
-                Data.add(loadingCardObject);
+                productData.add(loadingCardObject);
                 notifyItemInserted(getItemCount());
             } else {
-                Data.remove(loadingCardObject);
+                productData.remove(loadingCardObject);
                 notifyItemChanged(getItemCount());
             }
         });
@@ -252,27 +257,27 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     //NoPost for nested recyclerviews adapters
-    public void setLoadingNoPost(boolean loading){
-        if(isLoading() == loading) return;
+    public void setLoadingNoPost(boolean loading) {
+        if (isLoading() == loading) return;
 
         if (loading) {
-            Data.add(loadingCardObject);
+            productData.add(loadingCardObject);
             notifyItemInserted(getItemCount());
         } else {
-            Data.remove(loadingCardObject);
+            productData.remove(loadingCardObject);
             notifyItemChanged(getItemCount());
         }
     }
 
-    public void showNoResultsFound(){
-        if(Data.contains(noResultCardObject)) return;
+    public void showNoResultsFound() {
+        if (productData.contains(noResultCardObject)) return;
 
-        Data.add(noResultCardObject);
+        productData.add(noResultCardObject);
         notifyItemInserted(0);
         noResultsFound = true;
     }
 
-    public void setHideFavButton(boolean hide){
+    public void setHideFavButton(boolean hide) {
         hideFavButton = hide;
     }
 
@@ -281,15 +286,15 @@ public class ProductsCardAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return currentMode == Configuration.UI_MODE_NIGHT_YES;
     }
 
-    boolean renderDataInLocalLanguage(){
-        switch (AppSettingsManager.getLanguageKey(context)){
+    boolean renderDataInLocalLanguage() {
+        switch (AppSettingsManager.getLanguageKey(context)) {
             case AppSettingsManager.LANGUAGE_ENGLISH:
                 return false;
             case AppSettingsManager.LANGUAGE_ARABIC:
                 return true;
             default:
                 String systemLanguage = Locale.getDefault().getLanguage();
-                if(systemLanguage.equals(AppSettingsManager.LANGUAGE_ARABIC)) return true;
+                if (systemLanguage.equals(AppSettingsManager.LANGUAGE_ARABIC)) return true;
                 else return false;
         }
     }

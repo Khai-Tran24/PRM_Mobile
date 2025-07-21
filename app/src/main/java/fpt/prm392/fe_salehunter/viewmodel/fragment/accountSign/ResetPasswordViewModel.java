@@ -7,19 +7,19 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import fpt.prm392.fe_salehunter.data.Repository;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import fpt.prm392.fe_salehunter.model.ResetPasswordModel;
 import retrofit2.Response;
 
 public class ResetPasswordViewModel extends AndroidViewModel {
-    private Repository repository;
+    private final Repository repository;
 
     public ResetPasswordViewModel(@NonNull Application application) {
         super(application);
         repository = new Repository();
     }
 
-    public LiveData<Response<BaseResponseModel>> resetPassword(String token, String email, String newPassword, String newPasswordConfirm){
+    public LiveData<Response<BaseResponseModel<Object>>> resetPassword(String token, String email, String newPassword, String newPasswordConfirm) {
         ResetPasswordModel resetPasswordModel = new ResetPasswordModel();
         resetPasswordModel.setPassword(newPassword);
         resetPasswordModel.setPasswordConfirm(newPasswordConfirm);

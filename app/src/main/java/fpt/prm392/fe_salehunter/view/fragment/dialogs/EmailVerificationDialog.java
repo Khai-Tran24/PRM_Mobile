@@ -23,7 +23,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.databinding.FragmentEmailVerificationDialogBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.dialogs.EmailVerificationDialogViewModel;
 
@@ -65,7 +65,7 @@ public class EmailVerificationDialog extends BottomSheetDialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         vb = FragmentEmailVerificationDialogBinding.inflate(inflater,container,false);
         return vb.getRoot();

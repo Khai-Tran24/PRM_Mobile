@@ -26,9 +26,8 @@ import java.util.ArrayList;
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsListAdapter;
 import fpt.prm392.fe_salehunter.databinding.FragmentFavBinding;
-import fpt.prm392.fe_salehunter.databinding.FragmentHistoryBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.home.FavViewModel;
@@ -165,12 +164,12 @@ public class FavFragment extends Fragment {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
                     vb.favLoading.setVisibility(View.GONE);
 
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
+                    if(response.body().getData() == null || response.body().getData().isEmpty()){
                         vb.favEmptyList.setVisibility(View.VISIBLE);
                         return;
                     }
 
-                    ArrayList<ProductModel> products = response.body().getProducts();
+                    ArrayList<ProductModel> products = response.body().getData();
 
                     for(ProductModel product : products) product.setFavorite(true);
 

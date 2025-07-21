@@ -295,6 +295,31 @@
             app:srcCompat="@drawable/menu_default"
             app:tint="?attr/textFillColor" />
 
+        <!-- Floating Chat Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_chat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="80dp"
+            android:src="@drawable/ic_chat"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:backgroundTint="@color/primary"
+            app:tint="@color/white"
+            android:contentDescription="Open AI Chat" />
+
+        <!-- Chat Overlay Container -->
+        <FrameLayout
+            android:id="@+id/chat_overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

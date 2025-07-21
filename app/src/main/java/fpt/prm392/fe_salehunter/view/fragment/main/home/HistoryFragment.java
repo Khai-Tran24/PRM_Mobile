@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsListAdapter;
 import fpt.prm392.fe_salehunter.databinding.FragmentHistoryBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.home.HistoryViewModel;
@@ -45,7 +45,7 @@ public class HistoryFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if(vb==null) vb = FragmentHistoryBinding.inflate(inflater,container,false);
+        if (vb == null) vb = FragmentHistoryBinding.inflate(inflater, container, false);
         return vb.getRoot();
     }
 
@@ -58,14 +58,14 @@ public class HistoryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(viewModel!=null) return;
+        if (viewModel != null) return;
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
+        new Handler().post(() -> {
+            navController = ((MainActivity) getActivity()).getAppNavController();
         });
         viewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
 
-        adapter = new ProductsListAdapter(getContext(),vb.historyRecyclerVeiw);
+        adapter = new ProductsListAdapter(getContext(), vb.historyRecyclerVeiw);
         vb.historyRecyclerVeiw.setLayoutManager(new LinearLayoutManager(getContext()));
         vb.historyRecyclerVeiw.setAdapter(adapter);
         adapter.setHideFavButton(true);
@@ -75,8 +75,8 @@ public class HistoryFragment extends Fragment {
             @Override
             public void onProductClicked(ProductModel product) {
                 Bundle bundle = new Bundle();
-                bundle.putLong("productId",product.getId());
-                navController.navigate(R.id.action_homeFragment_to_productPageFragment,bundle);
+                bundle.putLong("productId", product.getId());
+                navController.navigate(R.id.action_homeFragment_to_productPageFragment, bundle);
             }
 
             @Override
@@ -89,21 +89,21 @@ public class HistoryFragment extends Fragment {
         loadProducts();
     }
 
-    void loadProducts(){
+    void loadProducts() {
         vb.historyLoading.setVisibility(View.VISIBLE);
 
-        viewModel.getViewedProducts().observe(getViewLifecycleOwner(),  response ->{
+        viewModel.getViewedProducts().observe(getViewLifecycleOwner(), response -> {
 
-            switch (response.code()){
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
                     vb.historyLoading.setVisibility(View.GONE);
 
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
+                    if (response.body().getData() == null || response.body().getData().isEmpty()) {
                         vb.historyEmptyList.setVisibility(View.VISIBLE);
                         return;
                     }
 
-                    ArrayList<ProductModel> products = response.body().getProducts();
+                    ArrayList<ProductModel> products = response.body().getData();
 
                     adapter.addProducts(products);
 
@@ -115,7 +115,7 @@ public class HistoryFragment extends Fragment {
                     break;
 
                 default:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error),getString(R.string.Code)+ response.code());
+                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error), getString(R.string.Code) + response.code());
             }
         });
 

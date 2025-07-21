@@ -12,7 +12,7 @@ import fpt.prm392.fe_salehunter.model.auth.RegisterResponseModel;
 import retrofit2.Response;
 
 public class SignUpViewModel extends AndroidViewModel {
-    private Repository repository;
+    private final Repository repository;
 
     public SignUpViewModel(@NonNull Application application) {
         super(application);

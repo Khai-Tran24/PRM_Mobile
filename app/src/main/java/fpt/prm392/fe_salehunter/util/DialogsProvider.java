@@ -5,6 +5,7 @@ import android.app.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import fpt.prm392.fe_salehunter.R;
@@ -79,14 +80,17 @@ public class DialogsProvider {
     }
 
     public void sortAndFilterDialog(SortAndFilterModel sortAndFilterModel, HashSet<String> categories, HashSet<String> brands, SortAndFilterDialog.DialogResultListener dialogResultListener){
-        if (sortAndFilterDialog.isVisible()) sortAndFilterDialog.dismiss();
-        else {
-            sortAndFilterDialog.setSortAndFilterModel(sortAndFilterModel);
-            sortAndFilterDialog.setDialogResultListener(dialogResultListener);
-            sortAndFilterDialog.setCategories(categories);
-            sortAndFilterDialog.setBrands(brands);
-            sortAndFilterDialog.show(fragmentManager, sortAndFilterDialog.getTag());
+        if (sortAndFilterDialog.isVisible()) {
+            sortAndFilterDialog.dismiss();
         }
+        
+        // Reset the dialog with new data
+        sortAndFilterDialog = new SortAndFilterDialog();
+        sortAndFilterDialog.setSortAndFilterModel(sortAndFilterModel);
+        sortAndFilterDialog.setCategories(categories);
+        sortAndFilterDialog.setBrands(brands);
+        sortAndFilterDialog.setDialogResultListener(dialogResultListener);
+        sortAndFilterDialog.show(fragmentManager, "SortAndFilterDialog");
     }
 
 }

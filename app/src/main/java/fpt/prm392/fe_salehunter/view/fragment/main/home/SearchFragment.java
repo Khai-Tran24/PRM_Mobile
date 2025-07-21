@@ -32,8 +32,8 @@ import java.util.Locale;
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsCardAdapter;
 import fpt.prm392.fe_salehunter.databinding.FragmentSearchBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.util.AppSettingsManager;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
@@ -72,29 +72,28 @@ public class SearchFragment extends Fragment {
                 });
 
         barcodeResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        if (result.getResultCode() == Activity.RESULT_OK) {
-                            Intent data = result.getData();
-                            searchRequest(data.getStringExtra("result"));
-                        } else if(result.getResultCode() == Scanner.RESULT_TRY_AGAIN) barcodeResultLauncher.launch(new Intent(getContext(),Scanner.class));
-                    }
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        searchRequest(data.getStringExtra("result"));
+                    } else if (result.getResultCode() == Scanner.RESULT_TRY_AGAIN)
+                        barcodeResultLauncher.launch(new Intent(getContext(), Scanner.class));
                 });
 
         cameraPermission = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
             @Override
             public void onActivityResult(Boolean result) {
-                if(result) barcodeResultLauncher.launch(new Intent(getContext(),Scanner.class));
-                else Toast.makeText(getContext(), getString(R.string.Camera_Permission_Denied), Toast.LENGTH_SHORT).show();
+                if (result) barcodeResultLauncher.launch(new Intent(getContext(), Scanner.class));
+                else
+                    Toast.makeText(getContext(), getString(R.string.Camera_Permission_Denied), Toast.LENGTH_SHORT).show();
             }
         });
 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if(vb==null) vb = FragmentSearchBinding.inflate(inflater,container,false);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (vb == null) vb = FragmentSearchBinding.inflate(inflater, container, false);
         return vb.getRoot();
     }
 
@@ -107,22 +106,23 @@ public class SearchFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(viewModel!=null) return;
+        if (viewModel != null) return;
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
+        new Handler().post(() -> {
+            navController = ((MainActivity) requireActivity()).getAppNavController();
         });
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
 
         vb.searchSearchbar.setOnEditorActionListener((textView, i, keyEvent) -> {
-            if(i == EditorInfo.IME_ACTION_SEARCH) searchRequest(textView.getText().toString());
+            if (i == EditorInfo.IME_ACTION_SEARCH) searchRequest(textView.getText().toString());
             return false;
         });
 
         vb.searchVoice.setOnClickListener(button -> {
 
             String language;
-            if(AppSettingsManager.isLanguageSystemDefault(getContext())) language = Locale.getDefault().getLanguage();
+            if (AppSettingsManager.isLanguageSystemDefault(getContext()))
+                language = Locale.getDefault().getLanguage();
             else language = AppSettingsManager.getLanguageKey(getContext());
 
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -135,15 +135,16 @@ public class SearchFragment extends Fragment {
         });
 
         vb.searchBarcodeScan.setOnClickListener(button -> {
-            int checker = ActivityCompat.checkSelfPermission(getContext(),Manifest.permission.CAMERA);
+            int checker = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA);
 
-            if(checker == PackageManager.PERMISSION_GRANTED) barcodeResultLauncher.launch(new Intent(getActivity(),Scanner.class));
+            if (checker == PackageManager.PERMISSION_GRANTED)
+                barcodeResultLauncher.launch(new Intent(getActivity(), Scanner.class));
             else cameraPermission.launch(Manifest.permission.CAMERA);
 
         });
 
-        adapter = new ProductsCardAdapter(getContext(),vb.searchProductsRecyclerView);
-        vb.searchProductsRecyclerView.setLayoutManager(new GridLayoutManager(getContext(),2));
+        adapter = new ProductsCardAdapter(getContext(), vb.searchProductsRecyclerView);
+        vb.searchProductsRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         vb.searchProductsRecyclerView.setAdapter(adapter);
         adapter.setHideFavButton(true);
 
@@ -151,13 +152,13 @@ public class SearchFragment extends Fragment {
             @Override
             public void onProductClicked(long productId, String storeType) {
                 Bundle bundle = new Bundle();
-                bundle.putLong("productId",productId);
-                navController.navigate(R.id.action_homeFragment_to_productPageFragment,bundle);
+                bundle.putLong("productId", productId);
+                navController.navigate(R.id.action_homeFragment_to_productPageFragment, bundle);
             }
 
             @Override
             public void onProductAddedToFav(long productId, boolean favChecked) {
-                setFavourite(productId,favChecked);
+                setFavourite(productId, favChecked);
             }
         });
 
@@ -165,26 +166,27 @@ public class SearchFragment extends Fragment {
 
     }
 
-    void searchRequest(String keyword){
-        if(keyword.isEmpty()) return;
+    void searchRequest(String keyword) {
+        if (keyword.isEmpty()) return;
 
         Bundle bundle = new Bundle();
-        bundle.putString("keyword",keyword);
-        navController.navigate(R.id.action_homeFragment_to_searchResultsFragment,bundle);
+        bundle.putString("keyword", keyword);
+        navController.navigate(R.id.action_homeFragment_to_searchResultsFragment, bundle);
     }
 
-    void loadRecommendedProducts(){
+    void loadRecommendedProducts() {
         vb.searchLoadingRecommended.setVisibility(View.VISIBLE);
 
-        viewModel.getRecommendedProducts().observe(getViewLifecycleOwner(),  response ->{
+        viewModel.getRecommendedProducts().observe(getViewLifecycleOwner(), response -> {
 
-            switch (response.code()){
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
                     vb.searchLoadingRecommended.setVisibility(View.GONE);
 
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()) return;
+                    if (response.body().getData() == null || response.body().getData().isEmpty())
+                        return;
 
-                    ArrayList<ProductModel> products = response.body().getProducts();
+                    ArrayList<ProductModel> products = response.body().getData();
 
                     adapter.addProducts(products);
 
@@ -192,25 +194,24 @@ public class SearchFragment extends Fragment {
                     break;
 
                 case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    //Toast.makeText(getContext(), "Loading Recommendations Failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Loading Recommendations Failed", Toast.LENGTH_SHORT).show();
                     break;
 
                 default:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error),getString(R.string.Code)+ response.code());
+                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error), getString(R.string.Code) + response.code());
             }
         });
 
     }
 
-    void setFavourite(long productId, boolean favourite){
-        if(favourite){
-            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response ->{
+    void setFavourite(long productId, boolean favourite) {
+        if (favourite) {
+            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_CREATION)
                     Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
             });
-        }
-        else {
-            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response ->{
+        } else {
+            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_DELETED)
                     Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
             });

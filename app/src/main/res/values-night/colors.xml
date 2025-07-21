@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override colors for dark mode -->
+    <color name="primary">@color/chat_primary_dark</color>
+    <color name="background">@color/chat_background_dark</color>
+    <color name="card_background">@color/chat_card_background_dark</color>
+    
+    <!-- Chat specific dark mode colors -->
+    <color name="chat_primary">@color/chat_primary_dark</color>
+    <color name="chat_background">@color/chat_background_dark</color>
+    <color name="chat_card_background">@color/chat_card_background_dark</color>
+    <color name="chat_surface">@color/chat_surface_dark</color>
+    <color name="chat_input_background">@color/chat_input_background_dark</color>
+    <color name="chat_text_primary">@color/chat_text_primary_dark</color>
+    <color name="chat_text_secondary">@color/chat_text_secondary_dark</color>
+    <color name="chat_divider">@color/chat_divider_dark</color>
+</resources>

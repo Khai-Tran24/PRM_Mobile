@@ -13,6 +13,7 @@ import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.databinding.ActivityScannerBinding;
 import fpt.prm392.fe_salehunter.data.local.repository.LocalBarcodeRepository;
 import fpt.prm392.fe_salehunter.viewmodel.activity.ScannerViewModel;
+import fpt.prm392.fe_salehunter.helper.BarcodeLookupHelper;
 
 public class Scanner extends AppCompatActivity {
     private ActivityScannerBinding vb;
@@ -88,85 +89,19 @@ public class Scanner extends AppCompatActivity {
     }
 
     void lookUpBarcode(String barcode){
-       // First check local cache, then fallback to API
-       localBarcodeRepository.lookupProductByBarcode(barcode, new LocalBarcodeRepository.BarcodeCallback<String>() {
-           @Override
-           public void onSuccess(String productName) {
-               runOnUiThread(() -> {
-                   if (productName != null && !productName.trim().isEmpty()) {
-                       submitData(productName);
-                   } else {
-                       lookUpBarcodeFromAPI(barcode);
-                   }
-               });
-           }
-           
-           @Override
-           public void onError(Exception error) {
-               runOnUiThread(() -> lookUpBarcodeFromAPI(barcode));
-           }
-       });
-    }
+        BarcodeLookupHelper.performBarcodeLookup(viewModel, localBarcodeRepository, barcode, new BarcodeLookupHelper.BarcodeCallback() {
+            @Override
+            public void onSuccess(String productName) {
+                runOnUiThread(() -> submitData(productName));
+            }
 
-    void lookUpBarcodeFromAPI(String barcode){
-        lookUpBarcodeAlt(barcode);
-    }
-
-    void lookUpBarcodeAlt(String barcode){
-        viewModel.barcodeLookupUpcItemDb(barcode).observe(this, response ->{
-            if(response.code() == 200) {
-                viewModel.removeObserverUpcItemDb(this);
-
-                if(response.body().getItems().size()>0) {
-                    String productName = response.body().getItems().get(0).getProductName();
-                    
-                    // Cache the successful lookup
-                    cacheBarcodeLookup(barcode, productName, "upc_item_db");
-                    
-                    submitData(productName);
-                } else lookUpBarcodeAlt2(barcode);
-
-            } else lookUpBarcodeAlt2(barcode);
-
+            @Override
+            public void onFailure(String message) {
+                runOnUiThread(() -> productNotDetected(message));
+            }
         });
     }
-
-    void lookUpBarcodeAlt2(String barcode){
-        viewModel.barcodeLookupBarcodeMonster(barcode).observe(this, responseAlt ->{
-            if(responseAlt.code() == 200) {
-                viewModel.removeObserverBarcodeMonster(this);
-
-                if(responseAlt.body().getProductName() != null) {
-                    String productName = responseAlt.body().getProductName();
-                    
-                    // Cache the successful lookup
-                    cacheBarcodeLookup(barcode, productName, "barcode_monster");
-                    
-                    submitData(productName);
-                } else productNotDetected(getString(R.string.Product_Not_Detected));
-
-            } else productNotDetected(getString(R.string.You_are_Disconnected));
-        });
-    }
-
-    /**
-     * Cache barcode lookup result for future use
-     */
-    private void cacheBarcodeLookup(String barcode, String productName, String source) {
-        localBarcodeRepository.cacheBarcodeLookup(barcode, productName, null, source, 
-            new LocalBarcodeRepository.BarcodeCallback<Long>() {
-                @Override
-                public void onSuccess(Long id) {
-                    // Successfully cached
-                }
-                
-                @Override
-                public void onError(Exception error) {
-                    // Cache failed, but continue normally
-                }
-            });
-    }
-
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();

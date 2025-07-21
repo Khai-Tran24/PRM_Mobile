@@ -24,12 +24,13 @@ import java.util.ArrayList;
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsListAdapter;
 import fpt.prm392.fe_salehunter.databinding.FragmentDashboardBinding;
-import fpt.prm392.fe_salehunter.databinding.FragmentStorePageBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
-import fpt.prm392.fe_salehunter.model.StoreModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
+import fpt.prm392.fe_salehunter.model.store.StorePageData;
 import fpt.prm392.fe_salehunter.util.DialogsProvider;
 import fpt.prm392.fe_salehunter.view.activity.MainActivity;
+import fpt.prm392.fe_salehunter.view.fragment.main.CreateProductFragment;
+import fpt.prm392.fe_salehunter.view.fragment.main.CreateStoreFragment;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.DashboardViewModel;
 
 public class DashboardFragment extends Fragment {
@@ -51,9 +52,9 @@ public class DashboardFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if(vb==null) vb = FragmentDashboardBinding.inflate(inflater,container,false);
+        if (vb == null) vb = FragmentDashboardBinding.inflate(inflater, container, false);
         return vb.getRoot();
     }
 
@@ -66,23 +67,21 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ((MainActivity) getActivity()).setTitle(getString(R.string.Dashboard));
+        ((MainActivity) requireActivity()).setTitle(getString(R.string.Dashboard));
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if(viewModel!=null) return;
+        if (viewModel != null) return;
 
         viewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
         if (getArguments() != null) viewModel.setStoreId(getArguments().getLong("storeId"));
 
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
-        });
+        new Handler().post(() -> navController = ((MainActivity) requireActivity()).getAppNavController());
 
-        adapter = new ProductsListAdapter(getContext(),vb.dashboardRecyclerView);
+        adapter = new ProductsListAdapter(getContext(), vb.dashboardRecyclerView);
         vb.dashboardRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         vb.dashboardRecyclerView.setAdapter(adapter);
 
@@ -90,36 +89,32 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onProductClicked(ProductModel product) {
                 Bundle bundle = new Bundle();
-                bundle.putInt(CreateProductFragment.ACTION_KEY,CreateProductFragment.ACTION_EDIT_PRODUCT);
-                bundle.putString(CreateProductFragment.PRODUCT_DATA_KEY,new Gson().toJson(product));
-                bundle.putLong(CreateProductFragment.STORE_ID_KEY,viewModel.getStorePageModel().getStore().getId());
-                navController.navigate(R.id.action_dashboardFragment_to_createProductFragment,bundle);
+                bundle.putInt(CreateProductFragment.ACTION_KEY, CreateProductFragment.ACTION_EDIT_PRODUCT);
+                bundle.putString(CreateProductFragment.PRODUCT_DATA_KEY, new Gson().toJson(product));
+                bundle.putLong(CreateProductFragment.STORE_ID_KEY, viewModel.getStorePageData().getId());
+                navController.navigate(R.id.action_dashboardFragment_to_createProductFragment, bundle);
             }
 
             @Override
             public void onProductAddedToFav(long productId, boolean favChecked) {
-                setFavourite(productId,favChecked);
+                setFavourite(productId, favChecked);
             }
         });
 
-        adapter.setLastItemReachedListener(new ProductsListAdapter.LastItemReachedListener() {
-            @Override
-            public void onLastItemReached() {
-                loadMoreProducts();
-            }
+        adapter.setLastItemReachedListener(this::loadMoreProducts);
+
+        vb.dashboardAddProduct.setOnClickListener(button -> {
+            Bundle bundle = new Bundle();
+            bundle.putLong(CreateProductFragment.STORE_ID_KEY, viewModel.getStorePageData().getId());
+            navController.navigate(R.id.action_dashboardFragment_to_createProductFragment, bundle);
         });
 
-        vb.dashboardAddProduct.setOnClickListener(button ->{
+        vb.dashboardEditStore.setOnClickListener(button -> {
             Bundle bundle = new Bundle();
-            bundle.putLong(CreateProductFragment.STORE_ID_KEY,viewModel.getStorePageModel().getStore().getId());
-            navController.navigate(R.id.action_dashboardFragment_to_createProductFragment,bundle);
-        });
-
-        vb.dashboardEditStore.setOnClickListener(button ->{
-            Bundle bundle = new Bundle();
-            bundle.putInt(CreateStoreFragment.ACTION_KEY,CreateStoreFragment.ACTION_EDIT_STORE);
-            bundle.putString(CreateStoreFragment.STORE_DATA_KEY,new Gson().toJson(viewModel.getStorePageModel().getStore()));
-            navController.navigate(R.id.action_dashboardFragment_to_createStoreFragment2,bundle);
+            bundle.putInt(CreateStoreFragment.ACTION_KEY, CreateStoreFragment.ACTION_EDIT_STORE);
+            // Store data from StorePageData for backward compatibility
+            bundle.putString(CreateStoreFragment.STORE_DATA_KEY, new Gson().toJson(viewModel.getStorePageData()));
+            navController.navigate(R.id.action_dashboardFragment_to_createStoreFragment2, bundle);
         });
 
         vb.dashboardStoreCard.setVisibility(View.INVISIBLE);
@@ -127,22 +122,22 @@ public class DashboardFragment extends Fragment {
         loadStoreData();
     }
 
-    void loadStoreData(){
+    void loadStoreData() {
         vb.dashboardLoadingPage.setVisibility(View.VISIBLE);
 
-        viewModel.getStore().observe(getViewLifecycleOwner(), response ->{
+        viewModel.getStore().observe(getViewLifecycleOwner(), response -> {
 
-            switch (response.code()){
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    if(response.body()!=null){
-                        viewModel.setStorePageModel(response.body());
+                    if (response.body() != null) {
+                        viewModel.setStorePageData(response.body().getData());
                         renderStoreData();
                         renderInitialProducts();
                         vb.dashboardLoadingPage.setVisibility(View.GONE);
 
                         vb.dashboardStoreCard.setVisibility(View.VISIBLE);
-                        vb.dashboardStoreCard.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.zoom_in));
-                        vb.dashboardRecyclerView.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.slide_from_bottom));
+                        vb.dashboardStoreCard.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.zoom_in));
+                        vb.dashboardRecyclerView.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.slide_from_bottom));
                     }
                     break;
 
@@ -155,7 +150,7 @@ public class DashboardFragment extends Fragment {
                     break;
 
                 default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Server Error | Code: " + response.code(), Toast.LENGTH_SHORT).show();
             }
 
             viewModel.removeObserverStoreData(getViewLifecycleOwner());
@@ -163,48 +158,41 @@ public class DashboardFragment extends Fragment {
 
     }
 
-    void renderStoreData(){
-        StoreModel storeModel = viewModel.getStorePageModel().getStore();
+    void renderStoreData() {
+        StorePageData storeModel = viewModel.getStorePageData();
 
-        vb.dashboardStoreName.setText(storeModel.getName());
+        var storeName = storeModel.getName();
+        if (storeName == null || storeName.isEmpty())
+            storeName = getString(R.string.No_Store_Name);
+        vb.dashboardStoreName.setText(storeName);
 
-            Glide.with(this)
-                    .load(storeModel.getLogoUrl())
-                    .placeholder(R.drawable.store_placeholder)
-                    .circleCrop()
-                    .into(vb.dashboardLogo);
+        Glide.with(this)
+                .load(storeModel.getLogoUrl())
+                .placeholder(R.drawable.store_placeholder)
+                .circleCrop()
+                .into(vb.dashboardLogo);
 
-            vb.dashboardStoreCategory.setText(storeModel.getCategory());
-
+        vb.dashboardStoreCategory.setText(storeModel.getCategory());
     }
 
-    void renderInitialProducts(){
-        ArrayList<ProductModel> products = viewModel.getStorePageModel().getProducts();
-        if(products.size()==0){
-            endOfProducts = true;
-            vb.dashboardNoProducts.setVisibility(View.VISIBLE);
-        }
-        else adapter.addProducts(products);
-    }
-
-    void loadMoreProducts(){
-        if(endOfProducts) return;
-
-        adapter.setLoading(true);
-
-        viewModel.getNextPage().observe(getViewLifecycleOwner(),  response ->{
-
-            switch (response.code()){
+    void renderInitialProducts() {
+        // Load products using search API instead of from store data
+        viewModel.getStoreProducts().observe(getViewLifecycleOwner(), response -> {
+            switch (response.code()) {
                 case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    adapter.setLoading(false);
-
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
+                    if (response.body() != null && response.body().getData() != null) {
+                        ArrayList<ProductModel> products = response.body().getData();
+                        if (products.isEmpty()) {
+                            endOfProducts = true;
+                            vb.dashboardNoProducts.setVisibility(View.VISIBLE);
+                        } else {
+                            adapter.addProducts(products);
+                            vb.dashboardNoProducts.setVisibility(View.GONE);
+                        }
+                    } else {
                         endOfProducts = true;
-                        return;
+                        vb.dashboardNoProducts.setVisibility(View.VISIBLE);
                     }
-
-                    viewModel.removeObserverStoreData(getViewLifecycleOwner());
-                    adapter.addProducts(response.body().getProducts());
                     break;
 
                 case BaseResponseModel.FAILED_REQUEST_FAILURE:
@@ -212,20 +200,51 @@ public class DashboardFragment extends Fragment {
                     break;
 
                 default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Server Error | Code: " + response.code(), Toast.LENGTH_SHORT).show();
             }
+
+            viewModel.removeObserverProductsData(getViewLifecycleOwner());
         });
     }
 
-    void setFavourite(long productId, boolean favourite){
-        if(favourite){
-            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response ->{
+    void loadMoreProducts() {
+        if (endOfProducts) return;
+
+        adapter.setLoading(true);
+
+        viewModel.getNextPage().observe(getViewLifecycleOwner(), response -> {
+            adapter.setLoading(false);
+
+            switch (response.code()) {
+                case BaseResponseModel.SUCCESSFUL_OPERATION:
+                    if (response.body() == null || response.body().getData() == null || response.body().getData().isEmpty()) {
+                        endOfProducts = true;
+                        return;
+                    }
+
+                    adapter.addProducts(response.body().getData());
+                    break;
+
+                case BaseResponseModel.FAILED_REQUEST_FAILURE:
+                    Toast.makeText(getContext(), getString(R.string.Loading_Failed), Toast.LENGTH_SHORT).show();
+                    break;
+
+                default:
+                    Toast.makeText(getContext(), "Server Error | Code: " + response.code(), Toast.LENGTH_SHORT).show();
+            }
+
+            viewModel.removeObserverProductsData(getViewLifecycleOwner());
+        });
+    }
+
+    void setFavourite(long productId, boolean favourite) {
+        if (favourite) {
+            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_CREATION)
                     Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
             });
-        }
-        else {
-            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response ->{
+        } else {
+            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response -> {
                 if (response.code() != BaseResponseModel.SUCCESSFUL_DELETED)
                     Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
             });

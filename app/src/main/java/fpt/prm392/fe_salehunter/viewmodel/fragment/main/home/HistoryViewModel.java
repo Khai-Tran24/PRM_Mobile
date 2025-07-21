@@ -8,14 +8,17 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 
 import fpt.prm392.fe_salehunter.data.Repository;
-import fpt.prm392.fe_salehunter.model.ProductsResponseModel;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
+
+import java.util.ArrayList;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
 import retrofit2.Response;
 
 public class HistoryViewModel extends AndroidViewModel {
-    private Repository repository;
-    private LiveData<Response<ProductsResponseModel>> products;
-    private String token;
+    private final Repository repository;
+    private LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> products;
+    private final String token;
 
     public HistoryViewModel(@NonNull Application application) {
         super(application);
@@ -24,7 +27,7 @@ public class HistoryViewModel extends AndroidViewModel {
         token = UserAccountManager.getToken(application,UserAccountManager.TOKEN_TYPE_BEARER);
     }
 
-    public LiveData<Response<ProductsResponseModel>> getViewedProducts(){
+    public LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> getViewedProducts(){
         if (products == null) {
             products = repository.getProductsViewsHistory(token);
         }

@@ -441,9 +441,8 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <androidx.fragment.app.FragmentContainerView
+                    <org.maplibre.android.maps.MapView
                         android:id="@+id/product_page_map"
-                        android:name="com.google.android.gms.maps.SupportMapFragment"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
                         android:layout_marginTop="16dp"

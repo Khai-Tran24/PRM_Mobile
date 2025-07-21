@@ -1,637 +1,569 @@
 package fpt.prm392.fe_salehunter.view.fragment.main;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
-
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
-import android.os.Handler;
-import android.provider.Settings;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnimationUtils;
-import android.view.animation.DecelerateInterpolator;
-import android.widget.CompoundButton;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import org.maplibre.android.maps.MapLibreMap;
+import org.maplibre.android.maps.MapView;
+import org.maplibre.android.maps.OnMapReadyCallback;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.adapter.ProductsSearchResultsAdapter;
 import fpt.prm392.fe_salehunter.databinding.FragmentSearchResultsBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
 import fpt.prm392.fe_salehunter.model.SortAndFilterModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
-import fpt.prm392.fe_salehunter.util.DialogsProvider;
-import fpt.prm392.fe_salehunter.util.UserAccountManager;
-import fpt.prm392.fe_salehunter.view.activity.MainActivity;
-import fpt.prm392.fe_salehunter.view.fragment.dialogs.SortAndFilterDialog;
+import fpt.prm392.fe_salehunter.util.MapLibreManager;
+import fpt.prm392.fe_salehunter.util.search.SearchDataHelper;
+import fpt.prm392.fe_salehunter.util.search.SearchLocationHelper;
+import fpt.prm392.fe_salehunter.util.search.SearchMapHelper;
+import fpt.prm392.fe_salehunter.util.search.SearchUIHelper;
+import fpt.prm392.fe_salehunter.view.fragment.base.BaseFragment;
 import fpt.prm392.fe_salehunter.viewmodel.fragment.main.SearchResultsViewModel;
 
-public class SearchResultsFragment extends Fragment{
-    private FragmentSearchResultsBinding vb;
-    private NavController navController;
-    private SearchResultsViewModel viewModel;
-    private BottomSheetBehavior<View> mapBottomSheet;
-    private GoogleMap googleMap;
-
+/**
+ * Refactored SearchResultsFragment with improved structure and separation of concerns
+ * Uses helper classes to manage different aspects of functionality
+ */
+public class SearchResultsFragment extends BaseFragment<FragmentSearchResultsBinding, SearchResultsViewModel> 
+        implements OnMapReadyCallback {
+    
+    // Core components
     private ProductsSearchResultsAdapter adapter;
-    private boolean endOfOnlineProducts = false, endOfLocalProducts = false;
-
-    private LocationManager locationManager;
-    private String locationProvider;
-    private LocationListener locationListener;
-    private ActivityResultLauncher<IntentSenderRequest> locationDialogResultLauncher;
-    private ActivityResultLauncher<String[]> locationPermission;
-    private Marker userMark;
-
+    private MapView mapView;
+    private boolean isMapViewActive = false;
+    
+    // Helper classes for different responsibilities
+    private SearchUIHelper uiHelper;
+    private SearchMapHelper mapHelper;
+    private SearchLocationHelper locationHelper;
+    private SearchDataHelper dataHelper;
+    
+    // Permission launchers
+    private ActivityResultLauncher<String[]> locationPermissionLauncher;
+    
     public SearchResultsFragment() {
         // Required empty public constructor
     }
-
+    
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        locationDialogResultLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult result) {
-                if (result.getResultCode() == Activity.RESULT_OK) registerLocationListener();
-                else if(viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)){
-                    viewModel.getSortAndFilterModel().setSortBy(SortAndFilterModel.SORT_POPULARITY);
-                    adapter.clearProducts();
-                    loadResults();
-                    Toast.makeText(getContext(), "Sort by Nearest Store Canceled\nGPS is turned off", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
-        locationPermission = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
-            @Override
-            public void onActivityResult(Map<String, Boolean> result) {
-                if(result.get(Manifest.permission.ACCESS_FINE_LOCATION) && result.get(Manifest.permission.ACCESS_COARSE_LOCATION)) registerLocationListener();
-                else if(viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)){
-                    viewModel.getSortAndFilterModel().setSortBy(SortAndFilterModel.SORT_POPULARITY);
-                    adapter.clearProducts();
-                    loadResults();
-                    Toast.makeText(getContext(), "Sort by Nearest Store Canceled\nLocation Permission is Denied", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
+    protected FragmentSearchResultsBinding createViewBinding(@NonNull LayoutInflater inflater, ViewGroup container) {
+        return FragmentSearchResultsBinding.inflate(inflater, container, false);
     }
-
+    
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        if(vb==null) vb = FragmentSearchResultsBinding.inflate(inflater, container, false);
-        return vb.getRoot();
+    protected Class<SearchResultsViewModel> getViewModelClass() {
+        return SearchResultsViewModel.class;
     }
-
+    
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        vb = null;
-        if(locationListener!=null) locationManager.removeUpdates(locationListener);
+    protected String getFragmentTitle() {
+        return getString(R.string.Results);
     }
-
+    
     @Override
-    public void onResume() {
-        super.onResume();
-        ((MainActivity) getActivity()).setTitle(getString(R.string.Results));
+    protected void onFragmentCreate(Bundle savedInstanceState) {
+        super.onFragmentCreate(savedInstanceState);
+        initializePermissionLaunchers();
     }
-
+    
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        if(viewModel!=null) return;
-
-        ((MainActivity) getActivity()).setTitle(getString(R.string.Search));
-        new Handler().post(()->{
-            navController = ((MainActivity)getActivity()).getAppNavController();
-        });
-        viewModel = new ViewModelProvider(this).get(SearchResultsViewModel.class);
-        if (getArguments() != null) viewModel.setKeyword(getArguments().getString("keyword"));
-        vb.resultKeyword.setText(viewModel.getKeyword());
-        vb.resultKeywordLoading.setText(viewModel.getKeyword());
-
-        mapBottomSheet = BottomSheetBehavior.from(view.findViewById(R.id.result_map_bottomSheet));
-
-        ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.result_map)).getMapAsync(map ->{
-            this.googleMap = map;
-
-            googleMap.getUiSettings().setCompassEnabled(true);
-            googleMap.getUiSettings().setMapToolbarEnabled(false);
-            googleMap.getUiSettings().setMyLocationButtonEnabled(false);
-            googleMap.getUiSettings().setZoomControlsEnabled(false);
-
-            vb.resultMapMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    if (b) googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                    else googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                }
-            });
-
-            //Handling Camera Moving Down and BottomSheet Drag Down Touch Events
-            googleMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-                @Override
-                public void onCameraIdle() {
-                    mapBottomSheet.setDraggable(true);
-                }
-            });
-            vb.mapTouchHandler.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN)
-                        mapBottomSheet.setDraggable(false);
-                    return false;
-                }
-            });
-
-        });
-
-        // Add null safety check for getActivity()
-        if (getActivity() != null) {
-            locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (binding == null) {
+            binding = createViewBinding(inflater, container);
+            
+            // Initialize MapLibre and MapView
+            MapLibreManager.initialize(getSafeContext());
+            mapView = binding.resultMap;
+            mapView.onCreate(savedInstanceState);
         }
-        locationProvider = LocationManager.GPS_PROVIDER;
-        setLocating(false);
-
-        mapBottomSheet.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            int defaultTextColor = vb.resultProductMapTitle.getCurrentTextColor();
-
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                switch (newState) {
-                    case BottomSheetBehavior.STATE_EXPANDED:
-                        vb.resultProductMapTitle.animate().scaleX(1.5f).scaleY(1.5f).setDuration(250).setInterpolator(new DecelerateInterpolator()).start();
-
-                        ObjectAnimator expandColoring = ObjectAnimator.ofArgb(vb.resultProductMapTitle, "textColor", defaultTextColor, getResources().getColor(R.color.lightModeprimary, getActivity().getTheme()));
-                        expandColoring.setDuration(500);
-                        expandColoring.start();
-
-                        if(googleMap!=null && locationListener==null) registerLocationListener();
-                        break;
-
-                    case BottomSheetBehavior.STATE_COLLAPSED:
-                        vb.resultProductMapTitle.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250).setInterpolator(new DecelerateInterpolator()).start();
-
-                        ObjectAnimator collapseColoring = ObjectAnimator.ofArgb(vb.resultProductMapTitle, "textColor", getResources().getColor(R.color.lightModeprimary, getActivity().getTheme()), defaultTextColor);
-                        collapseColoring.setDuration(500);
-                        collapseColoring.start();
-
-                        if(locationListener!=null) locationManager.removeUpdates(locationListener);
-                        break;
-                }
+        return binding.getRoot();
+    }
+    
+    @Override
+    protected void processArguments(Bundle arguments) {
+        if (arguments != null && viewModel != null) {
+            String query = arguments.getString("keyword");
+            if (query != null) {
+                viewModel.setQuery(query);
             }
-
+        }
+    }
+    
+    @Override
+    protected void setupUI() {
+        initializeHelpers();
+        setupRecyclerView();
+        setupMapView();
+        setupViewToggle();
+        setupCallbacks();
+        
+        // Display initial keyword
+        if (viewModel != null) {
+            uiHelper.updateKeywordDisplay(viewModel.getQuery());
+        }
+    }
+    
+    @Override
+    protected void loadInitialData() {
+        if (dataHelper != null) {
+            dataHelper.loadResults();
+        }
+    }
+    
+    /**
+     * Initialize helper classes
+     */
+    private void initializeHelpers() {
+        // UI Helper
+        uiHelper = new SearchUIHelper(getSafeContext(), binding, viewModel, getViewLifecycleOwner());
+        uiHelper.setupUI();
+        
+        // Map Helper
+        mapHelper = new SearchMapHelper(getSafeContext());
+        
+        // Location Helper
+        locationHelper = new SearchLocationHelper(this, new SearchLocationHelper.LocationCallback() {
             @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
+            public void onLocationReceived(Location location) {
+                handleLocationReceived(location);
+            }
+            
+            @Override
+            public void onLocationError(String error) {
+                Toast.makeText(getSafeContext(), error, Toast.LENGTH_SHORT).show();
+                uiHelper.setLocating(false);
+            }
+            
+            @Override
+            public void onPermissionRequired(String[] permissions) {
+                locationPermissionLauncher.launch(permissions);
             }
         });
-
-        vb.resultBack.setOnClickListener(button -> {
-            getActivity().onBackPressed();
+        
+        // Data Helper
+        dataHelper = new SearchDataHelper(getSafeContext(), viewModel, getViewLifecycleOwner());
+        dataHelper.setCallback(new SearchDataHelper.SearchDataCallback() {
+            @Override
+            public void onSearchStarted() {
+                uiHelper.setSearching(true);
+            }
+            
+            @Override
+            public void onSearchCompleted(ArrayList<ProductModel> products) {
+                uiHelper.setSearching(false);
+                handleSearchResults(products);
+            }
+            
+            @Override
+            public void onSearchError(String error) {
+                uiHelper.setSearching(false);
+                Toast.makeText(getSafeContext(), error, Toast.LENGTH_SHORT).show();
+            }
+            
+            @Override
+            public void onMoreProductsLoaded(ArrayList<ProductModel> products, boolean isOnline) {
+                handleMoreProductsLoaded(products, isOnline);
+            }
+            
+            @Override
+            public void onEndOfProducts(boolean isOnline) {
+                // Products exhausted for this type
+            }
         });
-
-        vb.resultFilter.setOnClickListener(button -> {
-            DialogsProvider.get(getActivity()).sortAndFilterDialog(viewModel.getSortAndFilterModel(), viewModel.getCategories(), viewModel.getBrands(), new SortAndFilterDialog.DialogResultListener() {
-                @Override
-                public void onApply(SortAndFilterModel sortAndFilterModel) {
-                    viewModel.setSortAndFilterModel(sortAndFilterModel);
-                    if(viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)) registerLocationListener();
-                    else{
-                        adapter.clearProducts();
-                        loadResults();
+    }
+    
+    /**
+     * Setup permission launchers
+     */
+    private void initializePermissionLaunchers() {
+        locationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    boolean fineLocationGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+                    boolean coarseLocationGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+                    
+                    if (fineLocationGranted && coarseLocationGranted) {
+                        locationHelper.requestCurrentLocation();
+                    } else {
+                        handleLocationPermissionDenied();
                     }
                 }
-            });
-        });
-
-        adapter = new ProductsSearchResultsAdapter(getContext(), vb.resultRecyclerView);
-        vb.resultRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        vb.resultRecyclerView.setAdapter(adapter);
+        );
+    }
+    
+    /**
+     * Setup RecyclerView and adapter
+     */
+    private void setupRecyclerView() {
+        adapter = new ProductsSearchResultsAdapter(getSafeContext(), binding.resultRecyclerView);
+        binding.resultRecyclerView.setLayoutManager(
+                new LinearLayoutManager(getSafeContext(), LinearLayoutManager.VERTICAL, false));
+        binding.resultRecyclerView.setAdapter(adapter);
+        
+        // Set up adapter listeners
         adapter.setLastItemReachedListener(new ProductsSearchResultsAdapter.LastItemReachedListener() {
             @Override
             public void onLastOnlineProductReached() {
-                loadMoreOnlineProducts();
+                dataHelper.loadMoreOnlineProducts(adapter);
             }
-
+            
             @Override
             public void onLastLocalProductReached() {
-                loadMoreLocalProducts();
+                dataHelper.loadMoreLocalProducts(adapter);
             }
         });
-
+        
         adapter.setItemInteractionListener(new ProductsSearchResultsAdapter.ItemInteractionListener() {
             @Override
             public void onProductClicked(long productId, String storeType) {
-                Bundle bundle = new Bundle();
-                bundle.putLong("productId",productId);
-
-                navController.navigate(R.id.action_searchResultsFragment_to_productPageFragment,bundle);
+                navigateToProductPage(productId);
             }
-
+            
             @Override
             public void onProductAddedToFav(long productId, boolean favChecked) {
-                setFavourite(productId,favChecked);
+                dataHelper.setFavourite(productId, favChecked);
             }
         });
-
-        loadResults();
     }
-
-    void setSearching(boolean b){
-        if(b == (vb.resultLoadingPage.getVisibility() == View.VISIBLE)) return;
-
-        if(b) vb.resultLoadingPage.setVisibility(View.VISIBLE);
-        else {
-            vb.resultLoadingPage.setVisibility(View.GONE);
-            vb.resultLoadingPage.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.lay_off));
+    
+    /**
+     * Setup map view
+     */
+    private void setupMapView() {
+        if (mapView != null) {
+            mapView.getMapAsync(this);
         }
-    }
-
-    void setLocating(boolean b){
-        if(b){
-            vb.resultMapProgress.setVisibility(View.VISIBLE);
-            vb.resultMapProgress.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.fragment_in));
-        }
-        else {
-            vb.resultMapProgress.setVisibility(View.GONE);
-            vb.resultMapProgress.startAnimation(AnimationUtils.loadAnimation(getContext(),R.anim.fragment_out));
-        }
-    }
-
-    //ERROR BACKEND CURSOR NAV BY LAST ID MAKES DUPLICATED DATA (Backend Problem)
-    void loadResults(){
-        setSearching(true);
-
-        viewModel.loadResults().observe(getViewLifecycleOwner(),  response ->{
-            setSearching(false);
-
-            switch (response.code()){
-                case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    viewModel.removeObserverInitialLoadedProducts(getViewLifecycleOwner());
-
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()) {
-                        adapter.showNoOnlineResultsFound();
-                        adapter.showNoLocalResultsFound();
-                        return;
-                    }
-
-                    ArrayList<ProductModel> products = response.body().getProducts();
-                    ArrayList<ProductModel> onlineProducts = new ArrayList<>();
-                    ArrayList<ProductModel> localProducts = new ArrayList<>();
-
-                    for(ProductModel product : products){
-                        if(product.getStoreType().equals(ProductModel.ONLINE_STORE)) onlineProducts.add(product);
-                        else{
-                            localProducts.add(product);
-                            addProductOnMap(product.getStoreLatitude(), product.getStoreLongitude(), product.getStoreName());
-                        }
-
-                        viewModel.addCategory(product.getCategory());
-                        viewModel.addBrand(product.getBrand());
-                    }
-
-                    if(onlineProducts.size()>0){
-                        viewModel.setCursorLastOnlineItem(onlineProducts.get(onlineProducts.size()-1).getId());
-                        adapter.addOnlineProducts(onlineProducts);
-                    }
-                    else adapter.showNoOnlineResultsFound();
-
-                    if(localProducts.size()>0){
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                            localProducts.sort(new Comparator<ProductModel>() {
-//                                @Override
-//                                public int compare(ProductModel productModel, ProductModel t1) {
-//                                    return (int) (productModel.getId() - t1.getId());
-//                                }
-//                            });
-//                        }
-                        viewModel.setCursorLastLocalItem(localProducts.get(localProducts.size()-1).getId());
-                        adapter.addLocalProducts(localProducts);
-                    }
-                    else adapter.showNoLocalResultsFound();
-
-                    break;
-
-                case BaseResponseModel.FAILED_INVALID_DATA:
-                    DialogsProvider.get(getActivity()).messageDialog("Query Error", "Invalid Search Query Request\n"+response.toString());
-                    break;
-
-                case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Loading_Failed), getString(R.string.Please_Check_your_connection));
-                    break;
-
-                default:
-                    DialogsProvider.get(getActivity()).messageDialog(getString(R.string.Server_Error),getString(R.string.Code)+ response.code());
-            }
-        });
-
-    }
-
-    //ERROR BACKEND CURSOR NAV BY LAST ID MAKES DUPLICATED DATA (Backend Problem)
-    void loadMoreOnlineProducts(){
-        if(endOfOnlineProducts) return;
-
-        adapter.setOnlineProductsLoading(true);
-
-        viewModel.loadMoreOnlineResults().observe(getViewLifecycleOwner(),  response ->{
-
-            switch (response.code()){
-                case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    adapter.setOnlineProductsLoading(false);
-                    viewModel.removeObserverOnlineLoadedProducts(getViewLifecycleOwner());
-
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
-                        endOfOnlineProducts = true;
-                        return;
-                    }
-
-                    ArrayList<ProductModel> products = response.body().getProducts();
-
-                    //  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                        products.sort(new Comparator<ProductModel>() {
-//                            @Override
-//                            public int compare(ProductModel productModel, ProductModel t1) {
-//                                return (int) (productModel.getId() - t1.getId());
-//                            }
-//                        });
-//                    }
-
-                    adapter.addOnlineProducts(products);
-                    viewModel.setCursorLastOnlineItem(products.get(products.size()-1).getId());
-
-                    for(ProductModel product : products){
-                        viewModel.addCategory(product.getCategory());
-                        viewModel.addBrand(product.getBrand());
-                    }
-
-                    break;
-
-                case BaseResponseModel.FAILED_INVALID_DATA:
-                    DialogsProvider.get(getActivity()).messageDialog("Query Error", "Invalid Search Query Request\n"+response.toString());
-                    break;
-
-                case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    Toast.makeText(getContext(), "Loading Failed", Toast.LENGTH_SHORT).show();
-                    break;
-
-                default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-    }
-
-    //ERROR BACKEND CURSOR NAV BY LAST ID MAKES DUPLICATED DATA (Backend Problem)
-    void loadMoreLocalProducts(){
-        if(endOfLocalProducts) return;
-
-        adapter.setLocalProductsLoading(true);
-
-        viewModel.loadMoreLocalResults().observe(getViewLifecycleOwner(),  response ->{
-
-            switch (response.code()){
-                case BaseResponseModel.SUCCESSFUL_OPERATION:
-                    adapter.setLocalProductsLoading(false);
-                    viewModel.removeObserverLocalLoadedProducts(getViewLifecycleOwner());
-
-                    if(response.body().getProducts() == null || response.body().getProducts().isEmpty()){
-                        endOfLocalProducts = true;
-                        return;
-                    }
-
-                    ArrayList<ProductModel> products = response.body().getProducts();
-
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                        products.sort(new Comparator<ProductModel>() {
-//                            @Override
-//                            public int compare(ProductModel productModel, ProductModel t1) {
-//                                return (int) (productModel.getId() - t1.getId());
-//                            }
-//                        });
-//                    }
-
-                    adapter.addLocalProducts(products);
-                    viewModel.setCursorLastLocalItem(products.get(products.size()-1).getId());
-
-                    for(ProductModel product : products){
-                        viewModel.addCategory(product.getCategory());
-                        viewModel.addBrand(product.getBrand());
-
-                        addProductOnMap(product.getStoreLatitude(), product.getStoreLongitude(), product.getStoreName());
-                    }
-
-                    break;
-
-                case BaseResponseModel.FAILED_INVALID_DATA:
-                    DialogsProvider.get(getActivity()).messageDialog("Query Error", "Invalid Search Query Request\n"+response.toString());
-                    break;
-
-                case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                    Toast.makeText(getContext(), "Loading Failed", Toast.LENGTH_SHORT).show();
-                    break;
-
-                default:
-                    Toast.makeText(getContext(), "Server Error | Code: "+ response.code(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-    }
-
-    void setFavourite(long productId, boolean favourite){
-        if(favourite){
-            viewModel.addFavourite(productId).observe(getViewLifecycleOwner(), response ->{
-                if (response.code() != BaseResponseModel.SUCCESSFUL_CREATION)
-                    Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
-            });
-        }
-        else {
-            viewModel.removeFavourite(productId).observe(getViewLifecycleOwner(), response ->{
-                if (response.code() != BaseResponseModel.SUCCESSFUL_DELETED)
-                    Toast.makeText(getContext(), "Error" + response.code(), Toast.LENGTH_SHORT).show();
-            });
-        }
-
-    }
-
-    private void addProductOnMap(double lat, double lng, String storeName) {
-        try {
-        LatLng productLocation = new LatLng(lat, lng);
-        googleMap.addMarker(new MarkerOptions().position(productLocation).title(storeName).snippet("Store").icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_store_mark)));
-        } catch (Exception e){
-            Toast.makeText(getContext(), "Map Marker Error", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void setUserOnMap(Location location) {
-        try {
-        viewModel.setUserLocation(new LatLng(location.getLatitude(), location.getLongitude()));
-
-        // Add null safety check for user
-        UserModel currentUser = UserAccountManager.getUser(getContext());
-        String userTitle = currentUser != null ? currentUser.getFullName() : "User";
         
-        if(userMark == null) userMark = googleMap.addMarker(new MarkerOptions().position(viewModel.getUserLocation()).title(userTitle).snippet(getString(R.string.Your_Location)).icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_user_mark)));
-        else userMark.setPosition(viewModel.getUserLocation());
-
-        userMark.showInfoWindow();
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(viewModel.getUserLocation())
-                .zoom(googleMap.getCameraPosition().zoom < 8 ? 8:googleMap.getCameraPosition().zoom)
-                .build();
-
-        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),2000,null);
-        } catch (Exception e){
-            Toast.makeText(getContext(), "Map Marker Error", Toast.LENGTH_SHORT).show();
+        // Map mode toggle (Standard/Satellite)
+        binding.resultMapMode.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+            if (mapHelper.isMapReady()) {
+                mapHelper.toggleMapStyle(isChecked, () -> {
+                    // Re-add markers after style change
+                    mapHelper.addStoreMarkers(adapter);
+                });
+            }
+        });
+        
+        // My location button
+        binding.resultMyLocation.setOnClickListener(v -> {
+            uiHelper.setLocating(true);
+            locationHelper.requestCurrentLocation();
+        });
+    }
+    
+    /**
+     * Setup view toggle functionality
+     */
+    private void setupViewToggle() {
+        // Set up toggle button listeners
+        binding.resultListView.setOnClickListener(v -> {
+            if (!isMapViewActive) return; // Already in list view
+            
+            isMapViewActive = false;
+            binding.resultRecyclerView.setVisibility(View.VISIBLE);
+            binding.resultMapBottomSheet.setVisibility(View.GONE);
+            
+            // Update button states
+            binding.resultListView.setChecked(true);
+            binding.resultMapView.setChecked(false);
+        });
+        
+        binding.resultMapView.setOnClickListener(v -> {
+            if (isMapViewActive) return; // Already in map view
+            
+            isMapViewActive = true;
+            binding.resultRecyclerView.setVisibility(View.GONE);
+            binding.resultMapBottomSheet.setVisibility(View.VISIBLE);
+            
+            // Update button states
+            binding.resultListView.setChecked(false);
+            binding.resultMapView.setChecked(true);
+            
+            // Load stores on map if not already loaded
+            if (mapHelper != null) {
+                mapHelper.addStoreMarkers(adapter);
+            }
+        });
+        
+        // Set initial state - list view
+        binding.resultListView.setChecked(true);
+        binding.resultMapView.setChecked(false);
+        binding.resultRecyclerView.setVisibility(View.VISIBLE);
+        binding.resultMapBottomSheet.setVisibility(View.GONE);
+    }
+    
+    /**
+     * Setup callbacks for helper classes
+     */
+    private void setupCallbacks() {
+        // UI Helper callbacks
+        uiHelper.setSearchCallback(keyword -> {
+            viewModel.setQuery(keyword);
+            dataHelper.refreshResults();
+        });
+        
+        uiHelper.setViewToggleCallback(new SearchUIHelper.ViewToggleCallback() {
+            @Override
+            public void onListViewSelected() {
+                // Additional logic for list view if needed
+            }
+            
+            @Override
+            public void onMapViewSelected() {
+                if (mapHelper.isMapReady()) {
+                    mapHelper.addStoreMarkers(adapter);
+                }
+                
+                // Switch to map view
+                binding.resultMapView.performClick();
+            }
+        });
+        
+        uiHelper.setSortFilterCallback(new SearchUIHelper.SortFilterCallback() {
+            @Override
+            public void onSortChanged(SortAndFilterModel model) {
+                viewModel.setSortAndFilterModel(model);
+                
+                if (model.getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)) {
+                    uiHelper.setLocating(true);
+                    locationHelper.requestCurrentLocation();
+                } else {
+                    adapter.clearProducts();
+                    dataHelper.loadResults();
+                }
+            }
+            
+            @Override
+            public void onFilterChanged(SortAndFilterModel model) {
+                viewModel.setSortAndFilterModel(model);
+                adapter.clearProducts();
+                dataHelper.loadResults();
+            }
+        });
+        
+        // Swipe refresh
+        binding.resultSwipeRefresh.setOnRefreshListener(() -> {
+            adapter.clearProducts();
+            dataHelper.refreshResults();
+        });
+    }
+    
+    /**
+     * Handle map ready callback
+     */
+    @Override
+    public void onMapReady(@NonNull MapLibreMap mapLibreMap) {
+        mapHelper.initializeMap(mapLibreMap);
+        
+        // Add initial markers if products are already loaded
+        if (adapter != null) {
+            mapHelper.addStoreMarkers(adapter);
+        }
+        
+        // Try to get user location
+        if (hasLocationPermissions()) {
+            locationHelper.requestCurrentLocation();
         }
     }
-
-    private void focusOnMark(LatLng mark) {
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(mark)
-                .zoom(15)
-                .build();
-        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-    }
-
-    void registerLocationListener() {
-
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            locationPermission.launch(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION});
+    
+    /**
+     * Handle search results
+     */
+    private void handleSearchResults(ArrayList<ProductModel> products) {
+        if (products == null || products.isEmpty()) {
+            adapter.showNoOnlineResultsFound();
+            adapter.showNoLocalResultsFound();
+            uiHelper.updateResultsCount(0);
             return;
         }
-
-        if (locationManager.isProviderEnabled(locationProvider)) {
-
-            Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-            if(lastLocation!=null){
-                setUserOnMap(lastLocation);
-                if(viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)){
-                    adapter.clearProducts();
-                    loadResults();
-                }
-            } else if(viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)){
-                DialogsProvider.get(getActivity()).setLoading(true);
+        
+        // Separate online and local products
+        ArrayList<ProductModel> onlineProducts = new ArrayList<>();
+        ArrayList<ProductModel> localProducts = new ArrayList<>();
+        int storeCount = 0;
+        
+        for (ProductModel product : products) {
+            if (product.getStoreType().equals(ProductModel.ONLINE_STORE)) {
+                onlineProducts.add(product);
+            } else {
+                localProducts.add(product);
+                storeCount++;
             }
-
-            setLocating(true);
-
-            locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    setLocating(false);
-                    setUserOnMap(location);
-                    viewModel.setUserLocation(new LatLng(location.getLatitude(),location.getLongitude()));
-
-                    if(viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)){
-                        DialogsProvider.get(getActivity()).setLoading(false);
-                        adapter.clearProducts();
-                        loadResults();
-                    }
-
-                }
-            };
-
-            //choosing which provider depending on accuracy
-            if (locationManager.getProvider(LocationManager.GPS_PROVIDER).getAccuracy() < locationManager.getProvider(LocationManager.NETWORK_PROVIDER).getAccuracy())
-                locationProvider = LocationManager.NETWORK_PROVIDER;
-            else locationProvider = LocationManager.GPS_PROVIDER;
-
-            locationManager.requestLocationUpdates(locationProvider, 60000, 10, locationListener);
-
         }
-        else enableLocation();
+        
+        // Update adapter
+        if (!onlineProducts.isEmpty()) {
+            adapter.addOnlineProducts(onlineProducts);
+        } else {
+            adapter.showNoOnlineResultsFound();
+        }
+        
+        if (!localProducts.isEmpty()) {
+            adapter.addLocalProducts(localProducts);
+        } else {
+            adapter.showNoLocalResultsFound();
+        }
+        
+        // Update UI
+        uiHelper.updateResultsCount(products.size());
+        uiHelper.updateStoreCount(storeCount);
+        
+        // Update map markers
+        if (mapHelper.isMapReady()) {
+            mapHelper.addStoreMarkers(adapter);
+        }
     }
-
-    public void enableLocation(){
-        LocationRequest mLocationRequest = LocationRequest.create();
-
-        LocationSettingsRequest.Builder settingsBuilder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest)
-                .setAlwaysShow(true);
-
-        Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(getContext()).checkLocationSettings(settingsBuilder.build());
-
-        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-                try {
-                    LocationSettingsResponse response = task.getResult(ApiException.class);
-                }
-                catch (ApiException ex) {
-                    switch (ex.getStatusCode()) {
-
-                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                            //show dialog
-
-                            ResolvableApiException resolvableApiException = (ResolvableApiException) ex;
-                            locationDialogResultLauncher.launch(new IntentSenderRequest.Builder(resolvableApiException.getResolution()).build());
-
-                            break;
-
-                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                            //showing dialog not allowed
-                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                            startActivity(intent);
-                            break;
-                    }
-                }
-            }
-        });
-
-
+    
+    /**
+     * Handle more products loaded
+     */
+    private void handleMoreProductsLoaded(ArrayList<ProductModel> products, boolean isOnline) {
+        if (isOnline) {
+            adapter.addOnlineProducts(products);
+        } else {
+            adapter.addLocalProducts(products);
+        }
+        
+        uiHelper.updateResultsCount(uiHelper.getTotalResultsCount() + products.size());
+        
+        // Update map markers
+        if (mapHelper.isMapReady()) {
+            mapHelper.addStoreMarkers(adapter);
+        }
     }
-
-
+    
+    /**
+     * Handle location received
+     */
+    private void handleLocationReceived(Location location) {
+        uiHelper.setLocating(false);
+        
+        if (mapHelper.isMapReady()) {
+            mapHelper.addUserLocationMarker(location);
+            mapHelper.centerOnUserLocation(location, 15.0f);
+        }
+        
+        // If sorting by nearest store, reload results
+        if (viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)) {
+            adapter.clearProducts();
+            dataHelper.loadResults();
+        }
+        
+        Toast.makeText(getSafeContext(), "Location updated", Toast.LENGTH_SHORT).show();
+    }
+    
+    /**
+     * Handle location permission denied
+     */
+    private void handleLocationPermissionDenied() {
+        uiHelper.setLocating(false);
+        
+        if (viewModel.getSortAndFilterModel().getSortBy().equals(SortAndFilterModel.SORT_NEAREST_STORE)) {
+            // Fallback to popularity sort
+            viewModel.getSortAndFilterModel().setSortBy(SortAndFilterModel.SORT_POPULARITY);
+            adapter.clearProducts();
+            dataHelper.loadResults();
+            Toast.makeText(getSafeContext(), "Sort by Nearest Store Canceled\nLocation Permission Denied", 
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    /**
+     * Navigate to product page
+     */
+    private void navigateToProductPage(long productId) {
+        if (navController != null) {
+            Bundle bundle = new Bundle();
+            bundle.putLong("productId", productId);
+            navController.navigate(R.id.action_searchResultsFragment_to_productPageFragment, bundle);
+        }
+    }
+    
+    /**
+     * Check if location permissions are granted
+     */
+    private boolean hasLocationPermissions() {
+        return getSafeContext() != null &&
+               ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_FINE_LOCATION) 
+                       == PackageManager.PERMISSION_GRANTED &&
+               ActivityCompat.checkSelfPermission(getSafeContext(), Manifest.permission.ACCESS_COARSE_LOCATION) 
+                       == PackageManager.PERMISSION_GRANTED;
+    }
+    
+    // MapView lifecycle methods
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mapView != null) {
+            mapView.onStart();
+        }
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mapView != null) {
+            mapView.onResume();
+        }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mapView != null) {
+            mapView.onPause();
+        }
+    }
+    
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mapView != null) {
+            mapView.onStop();
+        }
+    }
+    
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (mapView != null) {
+            mapView.onLowMemory();
+        }
+    }
+    
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mapView != null) {
+            mapView.onSaveInstanceState(outState);
+        }
+    }
+    
+    @Override
+    protected void onFragmentDestroy() {
+        super.onFragmentDestroy();
+        
+        // Cleanup resources
+        if (mapView != null) {
+            mapView.onDestroy();
+        }
+        
+        if (locationHelper != null) {
+            locationHelper.cleanup();
+        }
+    }
 }

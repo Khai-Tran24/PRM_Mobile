@@ -1,7 +1,6 @@
 package fpt.prm392.fe_salehunter.view.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
@@ -11,9 +10,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,23 +18,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RadioButton;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.facebook.FacebookSdk;
-
-import java.util.Locale;
 
 import fpt.prm392.fe_salehunter.BuildConfig;
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.databinding.ActivityMainBinding;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.UserModel;
-import fpt.prm392.fe_salehunter.util.AppSettingsManager;
+import fpt.prm392.fe_salehunter.model.user.UserModel;
+import fpt.prm392.fe_salehunter.util.DeepLinkHelper;
+import fpt.prm392.fe_salehunter.util.LocaleHelper;
 import fpt.prm392.fe_salehunter.util.NetworkBroadcastReceiver;
 import fpt.prm392.fe_salehunter.util.SharedPrefManager;
+import fpt.prm392.fe_salehunter.util.ThemeHelper;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
+import fpt.prm392.fe_salehunter.util.UserDataManager;
 import fpt.prm392.fe_salehunter.view.UnderlayNavigationDrawer;
+import fpt.prm392.fe_salehunter.view.fragment.dialogs.ChatOverlayFragment;
 import fpt.prm392.fe_salehunter.viewmodel.activity.MainActivityViewModel;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -46,60 +43,22 @@ public class MainActivity extends AppCompatActivity {
     private MainActivityViewModel viewModel;
     private UnderlayNavigationDrawer underlayNavigationDrawer;
     private NetworkBroadcastReceiver networkBroadcastReceiver;
+    private FloatingActionButton fabChat;
+    private ChatOverlayFragment chatOverlayFragment;
 
     public static final String JUST_SIGNED_IN = "justSignedIn";
 
-    private boolean rememberMe;
-    private boolean firstLaunch;
-    private boolean signedIn;
-    private boolean justSignedIn;
-    private String token;
     private UserModel user;
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        String language;
-        if (AppSettingsManager.isLanguageSystemDefault(newBase))
-            language = Locale.getDefault().getLanguage();
-        else language = AppSettingsManager.getLanguageKey(newBase);
-
-        Locale locale = new Locale(language);
-        Locale.setDefault(locale);
-        newBase.getResources().getConfiguration().setLocale(locale);
-        newBase.getResources().getConfiguration().setLayoutDirection(locale);
-
-        super.attachBaseContext(newBase);
-    }
-
-    void changeLocale() {
-        String language;
-        if (AppSettingsManager.isLanguageSystemDefault(this))
-            language = Locale.getDefault().getLanguage();
-        else language = AppSettingsManager.getLanguageKey(this);
-
-        Locale locale = new Locale(language);
-        Configuration config = getResources().getConfiguration();
-        Locale.setDefault(locale);
-        config.setLocale(locale);
-        config.setLayoutDirection(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        super.attachBaseContext(LocaleHelper.applyLocaleToContext(newBase));
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //Set App Settings
-        switch (AppSettingsManager.getTheme(this)) {
-            case AppSettingsManager.THEME_LIGHT:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            case AppSettingsManager.THEME_DARK:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                break;
-            default:
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) changeLocale();
+        // Apply theme settings
+        ThemeHelper.applyTheme(this);
 
         super.onCreate(savedInstanceState);
         setTheme(R.style.SaleHunter);
@@ -113,13 +72,13 @@ public class MainActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
         navController = Navigation.findNavController(this, R.id.main_FragmentContainer);
 
-        firstLaunch = SharedPrefManager.get(this).isFirstLaunch();
-        rememberMe = SharedPrefManager.get(this).isRememberMeChecked();
-        signedIn = SharedPrefManager.get(this).isSignedIn(); // Fixed: Use actual sign-in state
-        token = UserAccountManager.getToken(this, UserAccountManager.TOKEN_TYPE_BEARER);
+        boolean firstLaunch = SharedPrefManager.get(this).isFirstLaunch();
+        boolean rememberMe = SharedPrefManager.get(this).isRememberMeChecked();
+        boolean signedIn = SharedPrefManager.get(this).isSignedIn(); // Fixed: Use actual sign-in state
+        String token = UserAccountManager.getToken(this, UserAccountManager.TOKEN_TYPE_BEARER);
         user = UserAccountManager.getUser(this);
 
-        justSignedIn = getIntent().getBooleanExtra(JUST_SIGNED_IN, false);
+        boolean justSignedIn = getIntent().getBooleanExtra(JUST_SIGNED_IN, false);
 
         FacebookSdk.setClientToken(getApplication().getString(R.string.facebook_app_id));
         FacebookSdk.sdkInitialize(getApplication());
@@ -144,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
             // Comment these two lines to skip sign in
             loadUserData(null); //From Local Storage
             if (!justSignedIn) syncUserData(); //From Server
+
+            //Initialize chat functionality
+            setupChatButton();
 
             //Side Menu
             underlayNavigationDrawer = new UnderlayNavigationDrawer(this, vb.menuFrontView, findViewById(R.id.main_FragmentContainer), vb.menuBackView, vb.menuButton);
@@ -195,28 +157,8 @@ public class MainActivity extends AppCompatActivity {
 
             //Sale Hunter links detection
             vb.appVersion.setText(BuildConfig.VERSION_NAME);
-            Uri appLinkData = getIntent().getData();
-
-            if (appLinkData != null) {
-                String url = appLinkData.getPath();
-                if (url.lastIndexOf("/") == url.length() - 1)
-                    url = url.substring(0, url.lastIndexOf("/"));
-
-                if (appLinkData.getPath().contains("pid=")) {
-                    String productId = url.substring(url.indexOf("=") + 1);
-
-                    Bundle bundle = new Bundle();
-                    bundle.putLong("productId", Long.parseLong(productId));
-                    navController.navigate(R.id.productPageFragment, bundle);
-                } else if (appLinkData.getPath().contains("store-profile=")) {
-                    String storeId = url.substring(url.indexOf("=") + 1);
-
-                    Bundle bundle = new Bundle();
-                    bundle.putLong("storeId", Long.parseLong(storeId));
-                    navController.navigate(R.id.storePageFragment, bundle);
-                } else if (appLinkData.getPath().equals("/profile")) vb.menuProfile.performClick();
-                else if (appLinkData.getPath().equals("/about-us")) vb.menuAbout.performClick();
-            }
+            // Handle deep links
+            DeepLinkHelper.handleDeepLink(this, getIntent(), navController);
 
         }
 
@@ -277,109 +219,22 @@ public class MainActivity extends AppCompatActivity {
 
     void navigateToFragment(int id) {
         underlayNavigationDrawer.closeMenu();
-        new Handler().postDelayed(() -> {
-            navController.popBackStack(id, true);
-            navController.navigate(id, null, new NavOptions.Builder().setEnterAnim(R.anim.fragment_in).setExitAnim(R.anim.fragment_out).build());
-
-        }, underlayNavigationDrawer.getAnimationDuration());
+        DeepLinkHelper.navigateToFragment(navController, id, underlayNavigationDrawer.getAnimationDuration());
     }
 
     public void syncUserData() {
-        try {
-            UserModel currentUser = UserAccountManager.getUser(this);
-            if (currentUser == null || currentUser.getSignedInWith() != UserModel.SIGNED_IN_WITH_EMAIL) {
-                return;
-            }
-
-            if (token == null || token.isEmpty()) {
-                UserAccountManager.signOut(MainActivity.this, true);
-                return;
-            }
-
-            viewModel.getUser(token).observe(this, response -> {
-                try {
-                    if (response == null) {
-                        return;
-                    }
-
-                    switch (response.code()) {
-                        case BaseResponseModel.SUCCESSFUL_OPERATION:
-                            if (response.body() != null && response.body().getUser() != null) {
-                                UserModel user = response.body().getUser();
-                                UserAccountManager.updateUser(getApplicationContext(), user);
-                                loadUserData(user);
-                            }
-                            break;
-
-                        case BaseResponseModel.FAILED_AUTH:
-                            UserAccountManager.signOut(MainActivity.this, true);
-                            break;
-
-                        case BaseResponseModel.FAILED_REQUEST_FAILURE:
-                            //Toast.makeText(this, "Data Sync Failed !", Toast.LENGTH_SHORT).show();
-                            break;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        UserDataManager.syncUserData(this, viewModel, this, user -> loadUserData(user));
     }
 
     public void loadUserData(UserModel userModel) {
-        try {
-            if (userModel != null) {
-                user = userModel;
-            } else {
-                user = UserAccountManager.getUser(this);
-            }
-
-            // Additional null safety check
-            if (user == null) {
-                // If user is still null, sign out and redirect to login
-                UserAccountManager.signOut(this, true);
-                return;
-            }
-
-            // Safe loading with null checks
-            String username = user.getFullName();
-            String accountType = user.getAccountType();
-            String imageLink = user.getImageLink();
-
-            if (vb != null) {
-                if (vb.menuUsername != null && username != null) {
-                    vb.menuUsername.setText(username);
-                }
-                
-                if (vb.menuAccountType != null && accountType != null) {
-                    vb.menuAccountType.setText(accountType);
-                }
-
-                if (vb.menuProfilePic != null) {
-                    Glide.with(this)
-                        .load(imageLink != null ? imageLink : "")
-                        .centerCrop()
-                        .transition(DrawableTransitionOptions.withCrossFade(50))
-                        .placeholder(R.drawable.profile_placeholder)
-                        .circleCrop()
-                        .into(vb.menuProfilePic);
-                }
-
-                if (vb.menuDashboard != null) {
-                    if (user.hasStore()) {
-                        vb.menuDashboard.setVisibility(View.VISIBLE);
-                    } else {
-                        vb.menuDashboard.setVisibility(View.GONE);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // If anything goes wrong, sign out safely
-            UserAccountManager.signOut(this, true);
+        UserDataManager.loadUserDataToUI(this, vb, userModel);
+        if (userModel != null) {
+            this.user = userModel;
         }
+    }
+
+    public void changeLocale() {
+        LocaleHelper.updateLocaleConfiguration(this);
     }
 
     public NavController getAppNavController() {
@@ -395,6 +250,125 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void setupChatButton() {
+        fabChat = vb.fabChat;
+        
+        // Set up chat button click listener
+        fabChat.setOnClickListener(v -> {
+            openChatOverlay();
+        });
+
+        // Handle swipe to hide functionality
+        setupChatButtonGestures();
+    }
+
+    private void setupChatButtonGestures() {
+        fabChat.setOnTouchListener(new View.OnTouchListener() {
+            private float initialX;
+            private float initialTouchX;
+            private float initialTouchY;
+            private final int SWIPE_THRESHOLD = 100;
+            private final int SWIPE_VELOCITY_THRESHOLD = 100;
+            private boolean isMoving = false;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        initialX = v.getX();
+                        initialTouchX = event.getRawX();
+                        initialTouchY = event.getRawY();
+                        isMoving = false;
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float deltaX = event.getRawX() - initialTouchX;
+                        float deltaY = event.getRawY() - initialTouchY;
+                        
+                        // Check if user is moving the FAB
+                        if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+                            isMoving = true;
+                        }
+                        
+                        // Move the FAB horizontally only if swiping right
+                        if (deltaX > 0) {
+                            v.setX(initialX + deltaX);
+                        }
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                        float finalDeltaX = event.getRawX() - initialTouchX;
+                        
+                        if (isMoving && finalDeltaX > SWIPE_THRESHOLD) {
+                            // Hide the FAB by moving it off screen
+                            v.animate()
+                                .translationX(v.getWidth() + 100)
+                                .alpha(0.3f)
+                                .setDuration(300)
+                                .start();
+                        } else {
+                            // Return to original position
+                            v.animate()
+                                .x(initialX)
+                                .alpha(1.0f)
+                                .setDuration(200)
+                                .start();
+                            
+                            // If it wasn't moved much, treat as click
+                            if (!isMoving) {
+                                v.performClick();
+                            }
+                        }
+                        return true;
+                }
+                return false;
+            }
+        });
+
+        // Double tap to show if hidden
+        fabChat.setOnClickListener(v -> {
+            if (v.getAlpha() < 1.0f) {
+                // Show the FAB
+                v.animate()
+                    .translationX(0)
+                    .alpha(1.0f)
+                    .setDuration(300)
+                    .start();
+            } else {
+                openChatOverlay();
+            }
+        });
+    }
+
+    private void openChatOverlay() {
+        if (chatOverlayFragment == null) {
+            chatOverlayFragment = new ChatOverlayFragment();
+            chatOverlayFragment.setChatOverlayListener(new ChatOverlayFragment.ChatOverlayListener() {
+                @Override
+                public void onChatClosed() {
+                    closeChatOverlay();
+                }
+            });
+        }
+
+        // Show the overlay
+        vb.chatOverlayContainer.setVisibility(View.VISIBLE);
+        
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.chat_overlay_container, chatOverlayFragment)
+                .commit();
+    }
+
+    private void closeChatOverlay() {
+        vb.chatOverlayContainer.setVisibility(View.GONE);
+        
+        if (chatOverlayFragment != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .remove(chatOverlayFragment)
+                    .commit();
         }
     }
 

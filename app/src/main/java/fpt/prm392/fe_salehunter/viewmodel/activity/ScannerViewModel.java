@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.media.Image;
 import android.media.MediaPlayer;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Size;
 
@@ -20,8 +21,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
@@ -33,24 +32,24 @@ import java.util.List;
 
 import fpt.prm392.fe_salehunter.R;
 import fpt.prm392.fe_salehunter.data.Repository;
-import fpt.prm392.fe_salehunter.model.BarcodeMonsterResponseModel;
-import fpt.prm392.fe_salehunter.model.UpcItemDbResponseModel;
+import fpt.prm392.fe_salehunter.model.barcode.BarcodeMonsterResponseModel;
+import fpt.prm392.fe_salehunter.model.barcode.OpenFoodFactsResponseModel;
+import fpt.prm392.fe_salehunter.model.barcode.UpcItemDbResponseModel;
 import retrofit2.Response;
 
 public class ScannerViewModel extends AndroidViewModel {
-    private Repository repository;
-    private MutableLiveData<String> result;
+    private final Repository repository;
+    private final MutableLiveData<String> result;
     private LiveData<Response<UpcItemDbResponseModel>> barcodeLookupUpcItemDb;
     private LiveData<Response<BarcodeMonsterResponseModel>> barcodeLookupBarcodeMonster;
+    private LiveData<Response<OpenFoodFactsResponseModel>> barcodeLookupOpenFoodFacts;
 
-    private Preview preview;
     private ProcessCameraProvider cameraProvider;
-    private CameraSelector cameraSelector;
-    private ImageAnalysis imageAnalysis;
-    private BarcodeScanner barcodeScanner;
+    private final ImageAnalysis imageAnalysis;
+    private final BarcodeScanner barcodeScanner;
 
-    private Vibrator vibrator;
-    private MediaPlayer sfx;
+    private final Vibrator vibrator;
+    private final MediaPlayer sfx;
 
     public ScannerViewModel(Application application){
         super(application);
@@ -64,7 +63,10 @@ public class ScannerViewModel extends AndroidViewModel {
         try {
             cameraProvider = ProcessCameraProvider.getInstance(application).get();
         }
-        catch (Exception e){e.printStackTrace();}
+        catch (Exception e){
+            result.setValue("Camera provider not available");
+            e.printStackTrace();
+        }
 
         barcodeScanner = BarcodeScanning.getClient(new BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_EAN_8,Barcode.FORMAT_EAN_13,Barcode.FORMAT_UPC_A,Barcode.FORMAT_UPC_E)
@@ -88,26 +90,19 @@ public class ScannerViewModel extends AndroidViewModel {
                     InputImage inputImage = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
 
                     barcodeScanner.process(inputImage)
-                            .addOnSuccessListener(new OnSuccessListener<List<Barcode>>() {
-                                @Override
-                                public void onSuccess(List<Barcode> barcodes) {
-                                    for (Barcode barcode : barcodes) {
-                                        String rawValue = barcode.getRawValue();
-                                        if(rawValue!=null) {
-                                            vibrator.vibrate(100);
-                                            sfx.start();
-                                            result.setValue(rawValue);
-                                            barcodeScanner.close();
-                                        }
+                            .addOnSuccessListener(barcodes -> {
+                                for (Barcode barcode : barcodes) {
+                                    String rawValue = barcode.getRawValue();
+                                    if(rawValue!=null) {
+                                        vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+                                        sfx.start();
+                                        result.setValue(rawValue);
+                                        barcodeScanner.close();
                                     }
                                 }
                             })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    //on process start error
-                                }
-
+                            .addOnFailureListener(e -> {
+                                //on process start error
                             })
                             .addOnCompleteListener(new OnCompleteListener<List<Barcode>>() {
                                 @Override
@@ -124,13 +119,13 @@ public class ScannerViewModel extends AndroidViewModel {
 
     }
 
-    public MutableLiveData<String> getResult(){return result;};
+    public MutableLiveData<String> getResult(){return result;}
 
     public void bindCameraProvider(LifecycleOwner lifecycleOwner, Preview.SurfaceProvider surfaceProvider){
-        preview = new Preview.Builder().build();
+        Preview preview = new Preview.Builder().build();
         preview.setSurfaceProvider(surfaceProvider);
 
-        cameraSelector = new CameraSelector.Builder()
+        CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
 
@@ -142,17 +137,27 @@ public class ScannerViewModel extends AndroidViewModel {
         return barcodeLookupUpcItemDb;
     }
 
-    public LiveData<Response<BarcodeMonsterResponseModel>> barcodeLookupBarcodeMonster(String barcode){
-        barcodeLookupBarcodeMonster = repository.barcodeLookupBarcodeMonster(barcode);
-        return barcodeLookupBarcodeMonster;
+    public LiveData<Response<OpenFoodFactsResponseModel>> barcodeLookupOpenFoodFacts(String barcode){
+        barcodeLookupOpenFoodFacts = repository.barcodeLookupOpenFoodFacts(barcode);
+        return barcodeLookupOpenFoodFacts;
     }
 
     public void removeObserverUpcItemDb(LifecycleOwner lifecycleOwner){
-        barcodeLookupUpcItemDb.removeObservers(lifecycleOwner);
+        if (barcodeLookupUpcItemDb != null) {
+            barcodeLookupUpcItemDb.removeObservers(lifecycleOwner);
+        }
     }
 
     public void removeObserverBarcodeMonster(LifecycleOwner lifecycleOwner){
-        barcodeLookupBarcodeMonster.removeObservers(lifecycleOwner);
+        if (barcodeLookupBarcodeMonster != null) {
+            barcodeLookupBarcodeMonster.removeObservers(lifecycleOwner);
+        }
+    }
+
+    public void removeObserverOpenFoodFacts(LifecycleOwner lifecycleOwner){
+        if (barcodeLookupOpenFoodFacts != null) {
+            barcodeLookupOpenFoodFacts.removeObservers(lifecycleOwner);
+        }
     }
 
 }

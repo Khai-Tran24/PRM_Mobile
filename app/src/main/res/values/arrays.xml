@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Price Range Array -->
+    <string-array name="price_range_default">
+        <item>0</item>
+        <item>1000000</item>
+    </string-array>
+    
+    <!-- Sort Options -->
+    <string-array name="sort_options">
+        <item>@string/popularity</item>
+        <item>@string/price_low_to_high</item>
+        <item>@string/price_high_to_low</item>
+        <item>@string/customer_rating</item>
+        <item>@string/nearest_store</item>
+        <item>@string/newest_first</item>
+    </string-array>
+    
+    <!-- Category Filter Options -->
+    <string-array name="product_categories">
+        <item>Electronics</item>
+        <item>Fashion</item>
+        <item>Home &amp; Garden</item>
+        <item>Sports &amp; Outdoors</item>
+        <item>Beauty &amp; Health</item>
+        <item>Books &amp; Media</item>
+        <item>Toys &amp; Games</item>
+        <item>Automotive</item>
+    </string-array>
+    
+    <!-- Brand Filter Options -->
+    <string-array name="popular_brands">
+        <item>Apple</item>
+        <item>Samsung</item>
+        <item>Sony</item>
+        <item>Nike</item>
+        <item>Adidas</item>
+        <item>Canon</item>
+        <item>HP</item>
+        <item>Dell</item>
+    </string-array>
+    
+    <!-- Rating Filter Options -->
+    <string-array name="rating_options">
+        <item>4+ Stars</item>
+        <item>3+ Stars</item>
+        <item>2+ Stars</item>
+        <item>1+ Stars</item>
+    </string-array>
+</resources>

@@ -8,7 +8,7 @@ import androidx.lifecycle.AndroidViewModel;
 import fpt.prm392.fe_salehunter.data.Repository;
 
 public class HomeViewModel extends AndroidViewModel {
-    private Repository repository;
+    private final Repository repository;
 
     public HomeViewModel(@NonNull Application application) {
         super(application);

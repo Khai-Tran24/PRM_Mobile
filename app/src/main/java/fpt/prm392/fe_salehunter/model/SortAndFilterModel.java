@@ -1,5 +1,10 @@
 package fpt.prm392.fe_salehunter.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class SortAndFilterModel {
     //Sorting
     private String sortBy;
@@ -31,43 +36,35 @@ public class SortAndFilterModel {
         brand = BRAND_ALL;
     }
 
-    public String getSortBy() {
-        return sortBy;
+    public String getCategory () {
+        return category == null || category.isEmpty() || category.equals(CATEGORY_ALL) ? null : category;
     }
-
-    public void setSortBy(String sortBy) {
-        this.sortBy = sortBy;
-    }
-
-    public long getMinPrice() {
-        return minPrice;
-    }
-
-    public void setMinPrice(long minPrice) {
-        this.minPrice = minPrice;
-    }
-
-    public long getMaxPrice() {
-        return maxPrice;
-    }
-
-    public void setMaxPrice(long maxPrice) {
-        this.maxPrice = maxPrice;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
+    
     public String getBrand() {
-        return brand;
+        return brand == null || brand.isEmpty() || brand.equals(BRAND_ALL) ? null : brand;
     }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
+    
+    /**
+     * Convert Android sort constants to backend API sort constants
+     */
+    public String getBackendSortBy() {
+        switch (sortBy) {
+            case SORT_POPULARITY:
+                return "popularity";
+            case SORT_PRICE_ASC:
+                return "price_asc";
+            case SORT_PRICE_DSC:
+                return "price_dsc";
+            case SORT_RATING:
+                return "rating";
+            case SORT_NEWEST:
+                return "newest";
+            case SORT_BEST_DEAL:
+                return "best_deal";
+            case SORT_NEAREST_STORE:
+                return "nearest_store";
+            default:
+                return "popularity";
+        }
     }
 }

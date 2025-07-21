@@ -7,168 +7,158 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 
-import com.google.android.gms.maps.model.LatLng;
+import org.maplibre.android.geometry.LatLng;
 
 import java.util.HashSet;
 
 import fpt.prm392.fe_salehunter.data.Repository;
-import fpt.prm392.fe_salehunter.model.BaseResponseModel;
-import fpt.prm392.fe_salehunter.model.ProductsResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductSearchRequestModel;
+import fpt.prm392.fe_salehunter.model.request.PagingRequest;
+import fpt.prm392.fe_salehunter.model.response.BaseResponseModel;
+import fpt.prm392.fe_salehunter.model.product.ProductModel;
+
+import java.util.ArrayList;
+
 import fpt.prm392.fe_salehunter.model.SortAndFilterModel;
 import fpt.prm392.fe_salehunter.util.UserAccountManager;
+import lombok.Getter;
+import lombok.Setter;
 import retrofit2.Response;
 
 public class SearchResultsViewModel extends AndroidViewModel {
-    private Repository repository;
-    private LiveData<Response<ProductsResponseModel>> initialLoadedProducts;
-    private LiveData<Response<ProductsResponseModel>> onlinePaginatedProducts;
-    private LiveData<Response<ProductsResponseModel>> localPaginatedProducts;
+    private final Repository repository;
+    private LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> initialLoadedProducts;
+    private LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> onlinePaginatedProducts;
+    private LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> localPaginatedProducts;
 
-    private String token;
+    private final String token;
+    @Setter
+    @Getter
     private String language;
-    private String keyword;
+    @Setter
+    @Getter
+    private String query;
+    @Setter
+    @Getter
     private LatLng userLocation;
+    @Setter
+    @Getter
     private SortAndFilterModel sortAndFilterModel;
-    private HashSet<String> categories, brands;
-    private long cursorLastOnlineItem, cursorLastLocalItem;
-    private int productsCountPerPage = 10; //Min 10
+    @Getter
+    private final HashSet<String> categories;
+    @Getter
+    private final HashSet<String> brands;
+    @Setter
+    @Getter
+    private Integer cursorLastOnlineItem;
+    @Setter
+    @Getter
+    private Integer cursorLastLocalItem;
+    @Setter
+    @Getter
+    private Integer productsCountPerPage = 10;
 
     public SearchResultsViewModel(@NonNull Application application) {
         super(application);
 
         repository = new Repository();
 
-        token = UserAccountManager.getToken(application,UserAccountManager.TOKEN_TYPE_BEARER);
+        token = UserAccountManager.getToken(application, UserAccountManager.TOKEN_TYPE_BEARER);
         language = "en";
-        userLocation = new LatLng(0,0);
+        userLocation = new LatLng(0, 0);
         sortAndFilterModel = new SortAndFilterModel();
         categories = new HashSet<>();
         brands = new HashSet<>();
     }
 
-    public LiveData<Response<ProductsResponseModel>> loadResults(){
+    public LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> loadResults() {
         // Updated to use new simplified API structure
+        var searchRequest = ProductSearchRequestModel.builder()
+                .query(query)
+                .storeId(null)
+                .category(sortAndFilterModel.getCategory())
+                .minPrice((double) sortAndFilterModel.getMinPrice())
+                .maxPrice((double) sortAndFilterModel.getMaxPrice())
+                .sortBy(sortAndFilterModel.getBackendSortBy())
+                .brand(sortAndFilterModel.getBrand())
+                .build();
+        var pagingRequest = PagingRequest.builder()
+                .page(0) // Start from the first page
+                .size(productsCountPerPage)
+                .build();
         initialLoadedProducts = repository.searchProducts(
                 token,
-                keyword,
-                null, // storeId - null for all stores
-                sortAndFilterModel.getCategory(),
-                (double) sortAndFilterModel.getMinPrice(),
-                (double) sortAndFilterModel.getMaxPrice()
+                pagingRequest,
+                searchRequest
         );
         return initialLoadedProducts;
     }
 
-    public void removeObserverInitialLoadedProducts(LifecycleOwner lifecycleOwner){
+    public void removeObserverInitialLoadedProducts(LifecycleOwner lifecycleOwner) {
         if (initialLoadedProducts != null) {
             initialLoadedProducts.removeObservers(lifecycleOwner);
         }
     }
 
-    public LiveData<Response<ProductsResponseModel>> loadMoreOnlineResults(){
-        // Updated to use new simplified API structure (treating as same as loadResults for now)
+    public LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> loadMoreOnlineResults() {
         onlinePaginatedProducts = repository.searchProducts(
                 token,
-                keyword,
-                null, // storeId - null for all stores
-                sortAndFilterModel.getCategory(),
-                (double) sortAndFilterModel.getMinPrice(),
-                (double) sortAndFilterModel.getMaxPrice()
+                PagingRequest.builder()
+                        .page(cursorLastOnlineItem)
+                        .size(productsCountPerPage)
+                        .build(),
+                ProductSearchRequestModel.builder()
+                        .query(query)
+                        .storeId(null)
+                        .category(sortAndFilterModel.getCategory())
+                        .minPrice((double) sortAndFilterModel.getMinPrice())
+                        .maxPrice((double) sortAndFilterModel.getMaxPrice())
+                        .sortBy(sortAndFilterModel.getBackendSortBy())
+                        .brand(sortAndFilterModel.getBrand())
+                        .build()
         );
         return onlinePaginatedProducts;
     }
 
-    public void removeObserverOnlineLoadedProducts(LifecycleOwner lifecycleOwner){
+    public void removeObserverOnlineLoadedProducts(LifecycleOwner lifecycleOwner) {
         if (onlinePaginatedProducts != null) {
             onlinePaginatedProducts.removeObservers(lifecycleOwner);
         }
     }
 
-    public LiveData<Response<ProductsResponseModel>> loadMoreLocalResults(){
+    public LiveData<Response<BaseResponseModel<ArrayList<ProductModel>>>> loadMoreLocalResults() {
         // Updated to use new simplified API structure (treating as same as loadResults for now)
         localPaginatedProducts = repository.searchProducts(
                 token,
-                keyword,
-                null, // storeId - null for all stores
-                sortAndFilterModel.getCategory(),
-                (double) sortAndFilterModel.getMinPrice(),
-                (double) sortAndFilterModel.getMaxPrice()
+                PagingRequest.builder()
+                        .page(cursorLastLocalItem)
+                        .size(productsCountPerPage)
+                        .build(),
+                ProductSearchRequestModel.builder()
+                        .query(query)
+                        .storeId(null)
+                        .category(sortAndFilterModel.getCategory())
+                        .minPrice((double) sortAndFilterModel.getMinPrice())
+                        .maxPrice((double) sortAndFilterModel.getMaxPrice())
+                        .sortBy(sortAndFilterModel.getBackendSortBy())
+                        .brand(sortAndFilterModel.getBrand())
+                        .build()
         );
         return localPaginatedProducts;
     }
 
-    public void removeObserverLocalLoadedProducts(LifecycleOwner lifecycleOwner){
+    public void removeObserverLocalLoadedProducts(LifecycleOwner lifecycleOwner) {
         if (localPaginatedProducts != null) {
             localPaginatedProducts.removeObservers(lifecycleOwner);
         }
     }
 
-    public LiveData<Response<BaseResponseModel>> addFavourite(long productId){
-        return repository.addFavourite(token,productId);
+    public LiveData<Response<BaseResponseModel<Object>>> addFavourite(long productId) {
+        return repository.addFavourite(token, productId);
     }
 
-    public LiveData<Response<BaseResponseModel>> removeFavourite(long productId){
-        return repository.removeFavourite(token,productId);
-    }
-
-    public int getProductsCountPerPage() {
-        return productsCountPerPage;
-    }
-
-    public void setProductsCountPerPage(int productsCountPerPage) {
-        this.productsCountPerPage = productsCountPerPage;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public String getKeyword() {
-        return keyword;
-    }
-
-    public void setKeyword(String keyword) {
-        this.keyword = keyword;
-    }
-
-    public LatLng getUserLocation() {
-        return userLocation;
-    }
-
-    public void setUserLocation(LatLng userLocation) {
-        this.userLocation = userLocation;
-    }
-
-    public SortAndFilterModel getSortAndFilterModel() {
-        return sortAndFilterModel;
-    }
-
-    public void setSortAndFilterModel(SortAndFilterModel sortAndFilterModel) {
-        this.sortAndFilterModel = sortAndFilterModel;
-    }
-
-    public long getCursorLastOnlineItem() {
-        return cursorLastOnlineItem;
-    }
-
-    public void setCursorLastOnlineItem(long cursorLastOnlineItem) {
-        this.cursorLastOnlineItem = cursorLastOnlineItem;
-    }
-
-    public long getCursorLastLocalItem() {
-        return cursorLastLocalItem;
-    }
-
-    public void setCursorLastLocalItem(long cursorLastLocalItem) {
-        this.cursorLastLocalItem = cursorLastLocalItem;
-    }
-
-    public HashSet<String> getCategories() {
-        return categories;
+    public LiveData<Response<BaseResponseModel<Object>>> removeFavourite(long productId) {
+        return repository.removeFavourite(token, productId);
     }
 
     public void clearCategories() {
@@ -177,10 +167,6 @@ public class SearchResultsViewModel extends AndroidViewModel {
 
     public void addCategory(String category) {
         categories.add(category);
-    }
-
-    public HashSet<String> getBrands() {
-        return brands;
     }
 
     public void clearBrands() {

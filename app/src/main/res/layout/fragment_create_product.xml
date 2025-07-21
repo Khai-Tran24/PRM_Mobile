@@ -172,43 +172,6 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/create_product_name_arabic"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:boxBackgroundMode="filled"
-                    app:boxStrokeColor="#008E8E8E"
-                    app:boxStrokeErrorColor="#00FFFFFF"
-                    app:boxStrokeWidth="0dp"
-                    app:errorEnabled="true"
-                    app:expandedHintEnabled="true"
-                    app:hintAnimationEnabled="true"
-                    app:hintEnabled="true"
-                    app:hintTextColor="?attr/colorPrimary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_name">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/input"
-                        android:fadingEdge="horizontal"
-                        android:fadingEdgeLength="10dp"
-                        android:hint="@string/product_name_arabic"
-                        android:inputType="text"
-                        android:maxLength="32"
-                        android:paddingLeft="15dp"
-                        android:paddingTop="15dp"
-                        android:paddingRight="15dp"
-                        android:paddingBottom="15dp"
-                        android:requiresFadingEdge="horizontal"
-                        android:singleLine="true"
-                        android:textSize="20sp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/create_product_price"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -224,7 +187,7 @@
                     app:hintTextColor="?attr/colorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_name_arabic">
+                    app:layout_constraintTop_toBottomOf="@+id/create_product_name">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
@@ -252,7 +215,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="16dp"
                     android:includeFontPadding="false"
-                    android:text="Sale:"
+                    android:text="@string/product_sale_percent"
                     android:textSize="24sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/create_product_price" />
@@ -264,7 +227,7 @@
                     android:layout_marginStart="32dp"
                     android:layout_marginTop="16dp"
                     android:includeFontPadding="false"
-                    android:text="Price:"
+                    android:text="@string/product_final_price"
                     android:textSize="24sp"
                     app:layout_constraintStart_toEndOf="@+id/create_product_salePercent"
                     app:layout_constraintTop_toBottomOf="@+id/create_product_price" />
@@ -340,60 +303,208 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="50dp"
-                    android:text="Product Images"
+                    android:text="@string/product_images"
                     android:textColor="?attr/textFillColor"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/create_product_saleSlider" />
 
-                <android.widget.ImageView
-                    android:id="@+id/create_product_image1"
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/create_product_imagesSubtitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginEnd="16dp"
-                    android:adjustViewBounds="true"
-                    android:clickable="true"
-                    android:cropToPadding="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:src="@drawable/add_product_image"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/add_1_to_3_images_required"
+                    android:textColor="?attr/textFillColor"
+                    android:textSize="14sp"
+                    android:alpha="0.7"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/create_product_productImagesTitle" />
 
-                <android.widget.ImageView
-                    android:id="@+id/create_product_image2"
+                <!-- Primary Image Container -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/create_product_imageContainer1"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="200dp"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="16dp"
                     android:layout_marginEnd="16dp"
-                    android:adjustViewBounds="true"
+                    android:background="@drawable/image_container_border"
                     android:clickable="true"
-                    android:cropToPadding="true"
+                    android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    android:src="@drawable/add_product_image"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_image1" />
+                    app:layout_constraintTop_toBottomOf="@+id/create_product_imagesSubtitle">
 
-                <android.widget.ImageView
-                    android:id="@+id/create_product_image3"
+                    <ImageView
+                        android:id="@+id/create_product_image1"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_margin="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_add_photo_primary"
+                        android:background="@drawable/image_placeholder_bg"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/create_product_image1Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/primary_image_required"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/label_bg"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/create_product_image1Remove"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/circle_bg_red"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_close_white"
+                        android:visibility="gone"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <LinearLayout
+                        android:id="@+id/create_product_image1Actions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_margin="8dp"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent">
+
+                        <ImageView
+                            android:id="@+id/create_product_image1Camera"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/circle_bg_primary"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_camera_white"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+                        <ImageView
+                            android:id="@+id/create_product_image1Gallery"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/circle_bg_accent"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_gallery_white"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless" />
+                    </LinearLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Secondary Images Container -->
+                <LinearLayout
+                    android:id="@+id/create_product_secondaryImagesContainer"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="16dp"
                     android:layout_marginEnd="16dp"
-                    android:adjustViewBounds="true"
-                    android:clickable="true"
-                    android:cropToPadding="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:src="@drawable/add_product_image"
+                    android:orientation="horizontal"
+                    android:weightSum="2"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_image2" />
+                    app:layout_constraintTop_toBottomOf="@+id/create_product_imageContainer1">
+
+                    <!-- Second Image -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/create_product_imageContainer2"
+                        android:layout_width="0dp"
+                        android:layout_height="120dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/image_container_border"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <ImageView
+                            android:id="@+id/create_product_image2"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_margin="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_add_photo_secondary"
+                            android:background="@drawable/image_placeholder_bg"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <ImageView
+                            android:id="@+id/create_product_image2Remove"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/circle_bg_red"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_close_white"
+                            android:visibility="gone"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- Third Image -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/create_product_imageContainer3"
+                        android:layout_width="0dp"
+                        android:layout_height="120dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/image_container_border"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <ImageView
+                            android:id="@+id/create_product_image3"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_margin="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_add_photo_secondary"
+                            android:background="@drawable/image_placeholder_bg"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <ImageView
+                            android:id="@+id/create_product_image3Remove"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/circle_bg_red"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_close_white"
+                            android:visibility="gone"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/create_product_metaDataTitle"
@@ -406,7 +517,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_image3" />
+                    app:layout_constraintTop_toBottomOf="@+id/create_product_secondaryImagesContainer" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/create_product_category"
@@ -443,45 +554,6 @@
                         android:singleLine="true"
                         android:textSize="20sp" />
 
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/create_product_category_arabic"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:boxBackgroundMode="filled"
-                    app:boxStrokeColor="#008E8E8E"
-                    app:boxStrokeErrorColor="#00FFFFFF"
-                    app:boxStrokeWidth="0dp"
-                    app:errorEnabled="true"
-                    app:expandedHintEnabled="true"
-                    app:hintAnimationEnabled="true"
-                    app:hintEnabled="true"
-                    app:hintTextColor="?attr/colorPrimary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_category">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/input"
-                        android:fadingEdge="horizontal"
-                        android:fadingEdgeLength="10dp"
-                        android:hint="@string/category_arabic"
-                        android:inputType="text"
-                        android:maxLength="32"
-                        android:paddingLeft="15dp"
-                        android:paddingTop="15dp"
-                        android:paddingRight="15dp"
-                        android:paddingBottom="15dp"
-                        android:requiresFadingEdge="horizontal"
-                        android:singleLine="true"
-                        android:textSize="20sp" />
-
-
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -500,7 +572,7 @@
                     app:hintTextColor="?attr/colorPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_category_arabic">
+                    app:layout_constraintTop_toBottomOf="@+id/create_product_category">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:layout_width="match_parent"
@@ -565,50 +637,6 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/create_product_description_arabic"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:nestedScrollingEnabled="true"
-                    app:boxBackgroundMode="filled"
-                    app:boxStrokeColor="#008E8E8E"
-                    app:boxStrokeErrorColor="#00FFFFFF"
-                    app:boxStrokeWidth="0dp"
-                    app:errorEnabled="true"
-                    app:expandedHintEnabled="true"
-                    app:hintAnimationEnabled="true"
-                    app:hintEnabled="true"
-                    app:hintTextColor="?attr/colorPrimary"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_description">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:height="150dp"
-                        android:background="@drawable/input"
-                        android:fadingEdge="vertical"
-                        android:fadingEdgeLength="25dp"
-                        android:gravity="top"
-                        android:hint="@string/description_arabic"
-                        android:inputType="textMultiLine"
-                        android:maxHeight="150dp"
-                        android:minHeight="150dp"
-                        android:minLines="4"
-                        android:paddingLeft="15dp"
-                        android:paddingTop="20dp"
-                        android:paddingRight="15dp"
-                        android:paddingBottom="15dp"
-                        android:requiresFadingEdge="vertical"
-                        android:scrollbars="vertical"
-                        android:singleLine="false"
-                        android:textSize="20sp" />
-
-
-                </com.google.android.material.textfield.TextInputLayout>
-
                 <android.widget.Button
                     android:id="@+id/create_product_SubmitButton"
                     android:layout_width="0dp"
@@ -622,7 +650,7 @@
                     android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/create_product_description_arabic" />
+                    app:layout_constraintTop_toBottomOf="@+id/create_product_description" />
 
                 <android.widget.Button
                     android:id="@+id/create_product_deleteProduct"
